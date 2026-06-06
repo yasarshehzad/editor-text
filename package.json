@@ -1,0 +1,24 @@
+{
+  "name": "editor-text",
+  "version": "1.0.0",
+  "description": "A premium, modern online text and photo editor.",
+  "scripts": {
+    "dev": "http-server -p 3000 -c-1",
+    "start": "http-server -p 3000 -c-1"
+  },
+  "keywords": [
+    "text-editor",
+    "photo-editor",
+    "utility",
+    "in-browser"
+  ],
+  "author": "Editor Text",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "dependencies": {
+    "acorn": "^8.16.0",
+    "esprima": "^4.0.1"
+  }
+}

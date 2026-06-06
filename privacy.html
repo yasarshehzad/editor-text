@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy & Cookie Policy - Editor Text</title>
+  <meta name="description" content="Privacy Policy and Cookie Policy for Editor Text. Learn how we securely protect your data while you edit text documents and photos online.">
+  <link rel="icon" href="images/logo.png" type="image/png">
+  
+  <!-- Google Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  
+  <!-- Instant Theme Switcher to prevent white flashes -->
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('et_theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
+  
+  <style>
+    /* CSS Variables & Theme Definitions */
+    :root {
+      --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: 'Fira Code', 'Roboto Mono', 'Courier New', Courier, monospace;
+      
+      /* Default Theme: Dark Space */
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121e;
+      --bg-tertiary: #191929;
+      --bg-glass: rgba(18, 18, 30, 0.7);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-primary: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --accent-color: #3b82f6;
+      --accent-rgb: 59, 130, 246;
+      --accent-hover: #60a5fa;
+      --glow-color: rgba(59, 130, 246, 0.35);
+      --scrollbar-thumb: #2d2d44;
+      --danger-color: #ef4444;
+      --success-color: #10b981;
+      --panel-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      --border-radius: 12px;
+    }
+
+    [data-theme="light"] {
+      --bg-primary: #f5f6fa;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #f0f2f5;
+      --bg-glass: rgba(255, 255, 255, 0.8);
+      --border-color: rgba(0, 0, 0, 0.08);
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --accent-color: #0d9488;
+      --accent-rgb: 13, 148, 136;
+      --accent-hover: #14b8a6;
+      --glow-color: rgba(13, 148, 136, 0.15);
+      --scrollbar-thumb: #d1d5db;
+      --danger-color: #dc2626;
+      --success-color: #059669;
+      --panel-shadow: 0 8px 32px 0 rgba(31, 41, 55, 0.08);
+    }
+
+    [data-theme="cyberpunk"] {
+      --bg-primary: #1a002c;
+      --bg-secondary: #0d0015;
+      --bg-tertiary: #2e004f;
+      --bg-glass: rgba(13, 0, 21, 0.75);
+      --border-color: #ff007f;
+      --text-primary: #00ffff;
+      --text-secondary: #e2a0ff;
+      --accent-color: #ff007f;
+      --accent-rgb: 255, 0, 127;
+      --accent-hover: #ff47a4;
+      --glow-color: rgba(255, 0, 127, 0.5);
+      --scrollbar-thumb: #2e004f;
+      --danger-color: #ff3333;
+      --success-color: #39ff14;
+      --panel-shadow: 0 0 20px rgba(255, 0, 127, 0.2);
+    }
+
+    [data-theme="forest"] {
+      --bg-primary: #0f1c15;
+      --bg-secondary: #172a20;
+      --bg-tertiary: #1f372a;
+      --bg-glass: rgba(23, 42, 32, 0.7);
+      --border-color: rgba(16, 185, 129, 0.15);
+      --text-primary: #ecfdf5;
+      --text-secondary: #a7f3d0;
+      --accent-color: #10b981;
+      --accent-rgb: 16, 185, 129;
+      --accent-hover: #34d399;
+      --glow-color: rgba(16, 185, 129, 0.2);
+      --scrollbar-thumb: #274737;
+      --danger-color: #f87171;
+      --success-color: #059669;
+      --panel-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+    }
+
+    /* Global Reset */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    html {
+      width: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-family: var(--font-sans);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-thumb);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-secondary);
+    }
+
+    /* Glassmorphism utility */
+    .glass-panel {
+      background: var(--bg-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      box-shadow: none;
+    }
+    
+    /* Header layout */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      background: var(--bg-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 100;
+      width: 100%;
+    }
+    
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    .logo-img {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    [data-theme="light"] img[src*="logo.png"] {
+      filter: invert(1) brightness(0.15) !important;
+    }
+    
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+    }
+    
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-back:hover {
+      background: var(--bg-tertiary);
+      border-color: var(--text-secondary);
+      transform: translateY(-1px);
+    }
+    
+    .btn-back:active {
+      transform: translateY(0);
+    }
+    
+    main {
+      flex: 1;
+      padding: 40px 24px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      width: 100%;
+    }
+    
+    .content-card {
+      max-width: 800px;
+      width: 100%;
+      padding: 40px;
+      border-radius: 16px;
+      line-height: 1.8;
+    }
+    
+    h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      margin-top: 0;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+      letter-spacing: -0.03em;
+    }
+    
+    .subtitle, .last-updated {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      margin-bottom: 32px;
+    }
+    
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-top: 32px;
+      margin-bottom: 16px;
+      color: var(--accent-color);
+      letter-spacing: -0.02em;
+    }
+    
+    p {
+      margin-bottom: 20px;
+      color: var(--text-secondary);
+    }
+    
+    ul {
+      margin-bottom: 24px;
+      padding-left: 20px;
+      color: var(--text-secondary);
+    }
+    
+    li {
+      margin-bottom: 8px;
+    }
+    
+    footer {
+      padding: 32px 24px;
+      text-align: center;
+      border-top: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+    }
+    
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+    }
+    
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .footer-links a:hover {
+      color: var(--accent-color);
+    }
+    
+    @media (max-width: 768px) {
+      .content-card {
+        padding: 24px;
+      }
+      h1 {
+        font-size: 1.75rem;
+      }
+      header {
+        padding: 12px 16px;
+      }
+      .brand-title {
+        font-size: 1.1rem;
+      }
+      .btn-back {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .btn-back span:not(.material-symbols-outlined) {
+        display: none;
+      }
+      .btn-back {
+        padding: 0;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        justify-content: center;
+      }
+    }
+    
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .btn-back, html, body {
+        transition: none;
+        transform: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="glass-panel">
+    <a href="index.html" class="brand-section">
+      <img class="logo-img" src="images/logo.png" alt="Editor Text Logo">
+      <span class="brand-title">Editor Text</span>
+    </a>
+    <a href="index.html" class="btn-back">
+      <span class="material-symbols-outlined">edit_note</span>
+      <span>Back to Editor</span>
+    </a>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main>
+    <article class="content-card glass-panel">
+      <h1>Privacy & Cookie Policy</h1>
+      <p class="last-updated">Last updated: June 2026</p>
+      
+      <p>At <strong>Editor Text</strong> (editortext.com), we take your privacy extremely seriously. We have designed our web application with a "local-first" architecture, ensuring that your data remains yours. This document outlines exactly what information we handle, how we handle it, and how cookies are used on our platform.</p>
+      
+      <h2>1. Data Collection & Processing</h2>
+      <p>Our core text and photo editing tools operate entirely within your local web browser. This fundamentally changes how your data is processed compared to traditional cloud-based editors:</p>
+      <ul>
+        <li><strong>No Cloud Uploads:</strong> The documents you type, paste, or open, as well as the photos you filter, are processed locally by your device's CPU and memory. We do not upload your content to our servers.</li>
+        <li><strong>No Content Tracking:</strong> We do not log, track, or read the contents of the files you are working on. Your intellectual property, sensitive information, and personal writing are 100% private to you.</li>
+        <li><strong>Serverless Architecture:</strong> Because we do not rely on backend databases to store your active documents, it is impossible for us to suffer a data breach that exposes your files.</li>
+      </ul>
+
+      <h2>2. Third-Party Integrations</h2>
+      <p>We offer optional third-party integrations to enhance your workflow, such as Google Drive saving functionality. When using these integrations:</p>
+      <ul>
+        <li><strong>Google Sign-In:</strong> If you choose to log in via Google, we use the Google Identity Services API to authenticate you. We receive only basic profile information (name, email, and profile picture) to display within the app.</li>
+        <li><strong>Google Drive Scopes:</strong> We request the minimum permissions necessary to save files directly to your Drive. We do not request broad access to read or index your entire Google Drive.</li>
+        <li>Data shared with third-party providers like Google is governed by their respective Privacy Policies.</li>
+      </ul>
+
+      <h2>3. Web Analytics</h2>
+      <p>To improve our service, we may use standard, anonymized web analytics tools (such as Google Analytics or Plausible Analytics). These tools collect aggregated metrics such as visitor counts, browser types, and geographic regions. They do not track individual keystrokes, content, or personally identifiable information tied to your documents.</p>
+
+      <h2>4. Cookie Policy</h2>
+      <p>Editor Text uses standard browser storage mechanisms (Cookies and LocalStorage) strictly for functional purposes to provide a seamless user experience. We do not use intrusive tracking cookies for personalized advertising.</p>
+      <ul>
+        <li><strong>Theme Preferences:</strong> We store your UI preferences (such as light mode or dark mode, and active fonts) in LocalStorage so your environment is consistent across sessions.</li>
+        <li><strong>Local Drafts:</strong> We continuously autosave your active text editor contents into your browser's LocalStorage. This acts as a safety net so you don't lose your work if you accidentally close the tab. You can clear this at any time by clearing your browser cache.</li>
+        <li><strong>Session Cookies:</strong> If you use our Google Integration, standard session cookies are used by Google's API to maintain your logged-in state securely.</li>
+      </ul>
+
+      <h2>5. Your Rights</h2>
+      <p>Because we do not store your files on our servers, we do not have a database of your documents to delete upon request. If you wish to delete your data, simply clear your browser's cache, cookies, and LocalStorage, and all traces of your drafts and settings will be permanently erased from your device.</p>
+
+      <h2>6. Contact Us</h2>
+      <p>If you have any questions or concerns regarding this Privacy & Cookie Policy, or our data practices, please contact the website administrator.</p>
+    </article>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>&copy; 2026 Editor Text (editortext.com). All rights reserved.</div>
+    <div class="footer-links">
+      <a href="about.html">About & FAQ</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+    </div>
+  </footer>
+
+</body>
+</html>
