@@ -5,10 +5,40 @@
 
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Safe storage helper with memory fallback (protects against storage quotas & private-browsing blocking)
+  const safeStorage = {
+    _cache: {},
+    getItem(key) {
+      try {
+        return localStorage.getItem(key);
+      } catch (e) {
+        return this._cache[key] !== undefined ? this._cache[key] : null;
+      }
+    },
+    setItem(key, value) {
+      const strVal = String(value);
+      try {
+        localStorage.setItem(key, strVal);
+      } catch (e) {
+        console.warn('Storage write blocked or quota exceeded, using memory cache:', key);
+      }
+      this._cache[key] = strVal;
+    },
+    removeItem(key) {
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {
+        // ignore
+      }
+      delete this._cache[key];
+    }
+  };
+
   // Saved range for selection preservation (especially on touch devices)
   let savedRange = null;
   let savedTextareaStart = 0;
   let savedTextareaEnd = 0;
+  let lastFocusedTrigger = null;
 
   // --- STATE ---
   const state = {
@@ -24,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
     printMargin: 'off', // 'off', '80', or '100'
     tabMode: 'soft4', // 'hard', 'soft2', or 'soft4'
     whitespaceVisible: false,
-    googleUser: null, // Simulated Google auth user
     editorActive: false,
     
     // Advanced Settings States
@@ -135,7 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Welcome Landing overlay
     welcomeScreen: document.getElementById('welcome-screen'),
     btnWelcomeOpenComp: document.getElementById('btn-welcome-open-comp'),
-    btnWelcomeOpenDrive: document.getElementById('btn-welcome-open-drive'),
     btnWelcomeCreate: document.getElementById('btn-welcome-create'),
 
     // Tabs & Workspace
@@ -308,18 +336,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     shortcutsDialog: document.getElementById('shortcuts-dialog'),
     btnCloseShortcuts: document.getElementById('btn-close-shortcuts'),
-    
-    driveDialog: document.getElementById('drive-dialog'),
-    btnCloseDriveDialog: document.getElementById('btn-close-drive-dialog'),
-    btnDriveConnect: document.getElementById('btn-drive-connect'),
-    btnDriveSync: document.getElementById('btn-drive-sync'),
-    driveAccountSelect: document.getElementById('drive-account'),
-    
-    authDialog: document.getElementById('auth-dialog'),
-    btnCloseAuthDialog: document.getElementById('btn-close-auth-dialog'),
-    authTestEmailInput: document.getElementById('auth-test-email'),
-    btnDoLogin: document.getElementById('btn-do-login'),
-    btnDoLogout: document.getElementById('btn-do-logout'),
+    settingsDialog: document.getElementById('settings-dialog'),
+    btnCloseSettingsDialog: document.getElementById('btn-close-settings-dialog'),
 
     cookieBanner: document.getElementById('cookie-banner'),
     btnCookieAccept: document.getElementById('btn-cookie-accept'),
@@ -330,11 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Footer Links
     footerAbout: document.getElementById('footer-about-link'),
-    toastContainer: document.getElementById('toast-container'),
-
-    // Google GIS
-    authClientIdInput: document.getElementById('auth-client-id-input'),
-    btnSaveClientId: document.getElementById('btn-save-client-id')
+    toastContainer: document.getElementById('toast-container')
   };
 
   // --- INITIALIZATION ---
@@ -363,13 +377,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (el.fontSizeSelector) el.fontSizeSelector.value = state.fontSize || '16px';
 
-    // Load Client ID configuration if saved
-    if (localStorage.getItem('et_google_client_id') && el.authClientIdInput) {
-      el.authClientIdInput.value = localStorage.getItem('et_google_client_id');
-    }
-
     // Check cookie banner consent
-    if (localStorage.getItem('et_cookies') !== 'accepted' && localStorage.getItem('et_cookies') !== 'declined') {
+    if (safeStorage.getItem('et_cookies') !== 'accepted' && safeStorage.getItem('et_cookies') !== 'declined') {
       setTimeout(() => {
         el.cookieBanner.classList.remove('hidden');
       }, 1000);
@@ -422,94 +431,77 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 3500);
   }
 
-  // --- LOCALSTORAGE PERSISTENCE ---
+  // --- STORAGE PERSISTENCE ---
   function saveSettings() {
-    localStorage.setItem('et_theme', state.theme);
-    localStorage.setItem('et_editor_theme', state.editorTheme);
-    localStorage.setItem('et_text_wrap', state.textWrap);
-    localStorage.setItem('et_font_size', state.fontSize);
-    localStorage.setItem('et_font_family', state.fontFamily);
-    localStorage.setItem('et_filename', state.filename);
-    localStorage.setItem('et_extension', state.extension);
-    localStorage.setItem('et_active_tab', state.activeTab);
-    localStorage.setItem('et_split_view', state.splitViewActive);
-    localStorage.setItem('et_print_margin', state.printMargin);
-    localStorage.setItem('et_tab_mode', state.tabMode);
-    localStorage.setItem('et_whitespace', state.whitespaceVisible);
+    safeStorage.setItem('et_theme', state.theme);
+    safeStorage.setItem('et_editor_theme', state.editorTheme);
+    safeStorage.setItem('et_text_wrap', state.textWrap);
+    safeStorage.setItem('et_font_size', state.fontSize);
+    safeStorage.setItem('et_font_family', state.fontFamily);
+    safeStorage.setItem('et_filename', state.filename);
+    safeStorage.setItem('et_extension', state.extension);
+    safeStorage.setItem('et_active_tab', state.activeTab);
+    safeStorage.setItem('et_split_view', state.splitViewActive);
+    safeStorage.setItem('et_print_margin', state.printMargin);
+    safeStorage.setItem('et_tab_mode', state.tabMode);
+    safeStorage.setItem('et_whitespace', state.whitespaceVisible);
     
     // Save advanced editor settings
-    localStorage.setItem('et_editor_mode', state.editorMode);
-    localStorage.setItem('et_keybindings', state.keybindings);
-    localStorage.setItem('et_cursor_style', state.cursorStyle);
-    localStorage.setItem('et_folding', state.folding);
-    localStorage.setItem('et_tab_size', state.tabSize);
-    localStorage.setItem('et_overscroll', state.overscroll);
-    localStorage.setItem('chk_behaviours', state.behaviours);
-    localStorage.setItem('chk_quotes', state.wrapQuotes);
-    localStorage.setItem('chk_auto_indent', state.autoIndent);
-    localStorage.setItem('chk_relative_lines', state.relativeLineNumbers);
-    localStorage.setItem('chk_readonly', state.readonly);
-    localStorage.setItem('et_editor_active', state.editorActive);
+    safeStorage.setItem('et_editor_mode', state.editorMode);
+    safeStorage.setItem('et_keybindings', state.keybindings);
+    safeStorage.setItem('et_cursor_style', state.cursorStyle);
+    safeStorage.setItem('et_folding', state.folding);
+    safeStorage.setItem('et_tab_size', state.tabSize);
+    safeStorage.setItem('et_overscroll', state.overscroll);
+    safeStorage.setItem('chk_behaviours', state.behaviours);
+    safeStorage.setItem('chk_quotes', state.wrapQuotes);
+    safeStorage.setItem('chk_auto_indent', state.autoIndent);
+    safeStorage.setItem('chk_relative_lines', state.relativeLineNumbers);
+    safeStorage.setItem('chk_readonly', state.readonly);
+    safeStorage.setItem('et_editor_active', state.editorActive);
     
     // Clean whitespace symbols before saving content
     if (state.editorMode === 'rich') {
-      localStorage.setItem('et_text_content', el.richarea.innerHTML);
+      safeStorage.setItem('et_text_content', el.richarea.innerHTML);
     } else {
       const cleanText = state.whitespaceVisible ? cleanWhitespaceDisplay(el.textarea.value) : el.textarea.value;
-      localStorage.setItem('et_text_content', cleanText);
-    }
-    
-    if (state.googleUser) {
-      localStorage.setItem('et_google_user', JSON.stringify(state.googleUser));
-    } else {
-      localStorage.removeItem('et_google_user');
+      safeStorage.setItem('et_text_content', cleanText);
     }
   }
 
   function loadSettings() {
-    if (localStorage.getItem('et_theme')) state.theme = localStorage.getItem('et_theme');
-    state.editorTheme = localStorage.getItem('et_editor_theme') || state.theme;
-    if (localStorage.getItem('et_text_wrap')) state.textWrap = localStorage.getItem('et_text_wrap');
-    state.fontSize = localStorage.getItem('et_font_size') || '16px';
-    state.fontFamily = localStorage.getItem('et_font_family') || 'monospace';
+    if (safeStorage.getItem('et_theme')) state.theme = safeStorage.getItem('et_theme');
+    state.editorTheme = safeStorage.getItem('et_editor_theme') || state.theme;
+    if (safeStorage.getItem('et_text_wrap')) state.textWrap = safeStorage.getItem('et_text_wrap');
+    state.fontSize = safeStorage.getItem('et_font_size') || '16px';
+    state.fontFamily = safeStorage.getItem('et_font_family') || 'monospace';
     if (!fontMapping[state.fontFamily]) {
       state.fontFamily = 'monospace';
     }
-    if (localStorage.getItem('et_filename')) state.filename = localStorage.getItem('et_filename');
-    if (localStorage.getItem('et_extension')) state.extension = localStorage.getItem('et_extension');
-    if (localStorage.getItem('et_active_tab')) state.activeTab = localStorage.getItem('et_active_tab');
+    if (safeStorage.getItem('et_filename')) state.filename = safeStorage.getItem('et_filename');
+    if (safeStorage.getItem('et_extension')) state.extension = safeStorage.getItem('et_extension');
+    if (safeStorage.getItem('et_active_tab')) state.activeTab = safeStorage.getItem('et_active_tab');
     state.splitViewActive = false;
-    if (localStorage.getItem('et_print_margin')) state.printMargin = localStorage.getItem('et_print_margin');
-    if (localStorage.getItem('et_tab_mode')) state.tabMode = localStorage.getItem('et_tab_mode');
-    if (localStorage.getItem('et_whitespace')) state.whitespaceVisible = localStorage.getItem('et_whitespace') === 'true';
-    if (localStorage.getItem('et_google_user')) {
-      try {
-        const savedUser = localStorage.getItem('et_google_user');
-        if (savedUser && savedUser !== 'undefined') {
-          state.googleUser = JSON.parse(savedUser);
-        }
-      } catch (e) {
-        console.error("Failed to parse saved Google user session:", e);
-        localStorage.removeItem('et_google_user');
-      }
-    }
+    if (safeStorage.getItem('et_print_margin')) state.printMargin = safeStorage.getItem('et_print_margin');
+    if (safeStorage.getItem('et_tab_mode')) state.tabMode = safeStorage.getItem('et_tab_mode');
+    if (safeStorage.getItem('et_whitespace')) state.whitespaceVisible = safeStorage.getItem('et_whitespace') === 'true';
 
     // Load advanced settings
-    if (localStorage.getItem('et_editor_mode')) state.editorMode = localStorage.getItem('et_editor_mode');
-    if (localStorage.getItem('et_keybindings')) state.keybindings = localStorage.getItem('et_keybindings');
-    if (localStorage.getItem('et_cursor_style')) state.cursorStyle = localStorage.getItem('et_cursor_style');
-    if (localStorage.getItem('et_folding')) state.folding = localStorage.getItem('et_folding');
-    if (localStorage.getItem('et_tab_size')) state.tabSize = parseInt(localStorage.getItem('et_tab_size'));
-    if (localStorage.getItem('et_overscroll')) state.overscroll = localStorage.getItem('et_overscroll');
-    if (localStorage.getItem('chk_behaviours')) state.behaviours = localStorage.getItem('chk_behaviours') === 'true';
-    if (localStorage.getItem('chk_quotes')) state.wrapQuotes = localStorage.getItem('chk_quotes') === 'true';
-    if (localStorage.getItem('chk_auto_indent')) state.autoIndent = localStorage.getItem('chk_auto_indent') === 'true';
-    if (localStorage.getItem('chk_relative_lines')) state.relativeLineNumbers = localStorage.getItem('chk_relative_lines') === 'true';
-    if (localStorage.getItem('chk_readonly')) state.readonly = localStorage.getItem('chk_readonly') === 'true';
-    if (localStorage.getItem('et_editor_active')) state.editorActive = localStorage.getItem('et_editor_active') === 'true';
+    if (safeStorage.getItem('et_editor_mode')) state.editorMode = safeStorage.getItem('et_editor_mode');
+    if (safeStorage.getItem('et_keybindings')) state.keybindings = safeStorage.getItem('et_keybindings');
+    if (safeStorage.getItem('et_cursor_style')) state.cursorStyle = safeStorage.getItem('et_cursor_style');
+    if (safeStorage.getItem('et_folding')) state.folding = safeStorage.getItem('et_folding');
+    if (safeStorage.getItem('et_tab_size')) state.tabSize = parseInt(safeStorage.getItem('et_tab_size'));
+    if (safeStorage.getItem('et_overscroll')) state.overscroll = safeStorage.getItem('et_overscroll');
+    if (safeStorage.getItem('chk_behaviours')) state.behaviours = safeStorage.getItem('chk_behaviours') === 'true';
+    if (safeStorage.getItem('chk_quotes')) state.wrapQuotes = safeStorage.getItem('chk_quotes') === 'true';
+    if (safeStorage.getItem('chk_auto_indent')) state.autoIndent = safeStorage.getItem('chk_auto_indent') === 'true';
+    if (safeStorage.getItem('chk_relative_lines')) state.relativeLineNumbers = safeStorage.getItem('chk_relative_lines') === 'true';
+    if (safeStorage.getItem('chk_readonly')) state.readonly = safeStorage.getItem('chk_readonly') === 'true';
+    if (safeStorage.getItem('et_editor_active')) state.editorActive = safeStorage.getItem('et_editor_active') === 'true';
 
-    if (localStorage.getItem('et_text_content')) {
-      const rawText = localStorage.getItem('et_text_content');
+    if (safeStorage.getItem('et_text_content')) {
+      const rawText = safeStorage.getItem('et_text_content');
       if (rawText.length > 0) {
         state.editorActive = true;
       }
@@ -545,7 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Sync Sidebar Collapsed state
-    let sidebarCollapsed = localStorage.getItem('et_sidebar_collapsed');
+    let sidebarCollapsed = safeStorage.getItem('et_sidebar_collapsed');
     if (sidebarCollapsed === null) {
       sidebarCollapsed = window.innerWidth <= 1024 ? 'true' : 'false';
     }
@@ -705,8 +697,14 @@ document.addEventListener('DOMContentLoaded', () => {
     html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
     html = html.replace(/~~(.*?)~~/g, '<del>$1</del>');
     
-    // Parse links: [text](url)
-    html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
+    // Parse links: [text](url) - sanitized against javascript: and unsafe protocols
+    html = html.replace(/\[(.*?)\]\((.*?)\)/g, (match, text, url) => {
+      const cleanUrl = url.trim();
+      if (/^(https?:|mailto:|tel:|#|\/)/i.test(cleanUrl)) {
+        return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+      }
+      return `<span>${text}</span>`;
+    });
     
     // Parse code block: ```javascript ... ```
     html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
@@ -2095,86 +2093,7 @@ document.addEventListener('DOMContentLoaded', () => {
     img.src = state.photo.src;
   }
 
-  // --- GOOGLE SIGN IN WIDGET LOGIC ---
-  function initGoogleGIS() { /* Removed */ }
 
-  function handleCredentialResponse(response) {
-    try {
-      const payload = parseJwt(response.credential);
-      state.googleUser = {
-        email: payload.email,
-        name: payload.name || payload.email.split('@')[0],
-        avatar: payload.picture || `https://www.gravatar.com/avatar/${md5(payload.email)}?d=identicon`
-      };
-      saveSettings();
-      updateAuthUI();
-      el.authDialog.close();
-      showToast(`👋 Signed in as ${state.googleUser.name}`, 'success');
-    } catch (e) {
-      console.error("Failed to parse Google credentials:", e);
-      showToast("⚠️ Authentication parse error", "error");
-    }
-  }
-
-  function parseJwt(token) {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(jsonPayload);
-  }
-
-  function handleSaveClientId() {
-    const val = el.authClientIdInput.value.trim();
-    if (!val) {
-      localStorage.removeItem('et_google_client_id');
-      const container = document.getElementById("google-gis-button-container");
-      if (container) container.innerHTML = '';
-      showToast('🗑️ Google Client ID config cleared', 'info');
-      return;
-    }
-    localStorage.setItem('et_google_client_id', val);
-    showToast('✔️ Google Client ID saved. Starting GIS...', 'success');
-  }
-
-  function updateAuthUI() {
-    if (state.googleUser) {
-      if (el.btnGoogleLogin) el.btnGoogleLogin.classList.add('hidden');
-      if (el.userProfileMenu) el.userProfileMenu.classList.remove('hidden');
-      if (el.userAvatar) el.userAvatar.src = state.googleUser.avatar;
-      if (el.userNameLabel) el.userNameLabel.textContent = state.googleUser.name;
-      
-      if (el.authLoggedOutView) el.authLoggedOutView.classList.add('hidden');
-      if (el.authLoggedInView) el.authLoggedInView.classList.remove('hidden');
-      if (el.authProfilePic) el.authProfilePic.src = state.googleUser.avatar;
-      if (el.authProfileName) el.authProfileName.textContent = state.googleUser.name;
-      if (el.authProfileEmail) el.authProfileEmail.textContent = state.googleUser.email;
-      
-      if (el.driveAccountSelect) el.driveAccountSelect.value = 'user';
-    } else {
-      if (el.btnGoogleLogin) el.btnGoogleLogin.classList.remove('hidden');
-      if (el.userProfileMenu) el.userProfileMenu.classList.add('hidden');
-      
-      if (el.authLoggedOutView) el.authLoggedOutView.classList.remove('hidden');
-      if (el.authLoggedInView) el.authLoggedInView.classList.add('hidden');
-      
-      if (el.driveAccountSelect) el.driveAccountSelect.value = 'none';
-    }
-  }
-
-  function handleGoogleLogin() { /* Removed */ }
-
-  function handleGoogleLogout() { /* Removed */ }
-
-  // Simple string-to-gravatar hash generator (fallback md5 mockup)
-  function md5(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return Math.abs(hash).toString(16);
-  }
 
   // --- DRAG AND DROP ---
   function setupDragAndDrop() {
@@ -2300,9 +2219,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function setupEventListeners() {
     // Welcome Panel triggers
     el.btnWelcomeOpenComp.addEventListener('click', openFile);
-    el.btnWelcomeOpenDrive.addEventListener('click', () => {
-      el.driveDialog.showModal();
-    });
     el.btnWelcomeCreate.addEventListener('click', () => {
       state.editorActive = true;
       toggleWelcomeVisibility();
@@ -2585,7 +2501,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (el.btnMobileSidebarTogglePhoto) el.btnMobileSidebarTogglePhoto.classList.toggle('active', !isCollapsed);
             
             document.body.classList.toggle('sidebar-collapsed', isCollapsed);
-            localStorage.setItem('et_sidebar_collapsed', isCollapsed);
+            safeStorage.setItem('et_sidebar_collapsed', isCollapsed);
           }
         });
       }
@@ -2602,7 +2518,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (mobBtn) mobBtn.classList.remove('active');
           if (el.btnMobileSidebarTogglePhoto) el.btnMobileSidebarTogglePhoto.classList.remove('active');
           document.body.classList.add('sidebar-collapsed');
-          localStorage.setItem('et_sidebar_collapsed', 'true');
+          safeStorage.setItem('et_sidebar_collapsed', 'true');
         }
       });
     }
@@ -2621,23 +2537,22 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Google Auth widget & settings triggers
-    if (el.btnDoLogin) el.btnDoLogin.addEventListener('click', handleGoogleLogin);
-    if (el.btnDoLogout) el.btnDoLogout.addEventListener('click', handleGoogleLogout);
-    if (el.btnSaveClientId) el.btnSaveClientId.addEventListener('click', handleSaveClientId);
-
     // GDPR cookie banner accept/decline
-    el.btnCookieAccept.addEventListener('click', () => {
-      localStorage.setItem('et_cookies', 'accepted');
-      el.cookieBanner.classList.add('hidden');
-      showToast('🍪 Cookie preferences saved: Accepted All', 'success');
-    });
+    if (el.btnCookieAccept) {
+      el.btnCookieAccept.addEventListener('click', () => {
+        safeStorage.setItem('et_cookies', 'accepted');
+        el.cookieBanner.classList.add('hidden');
+        showToast('🍪 Cookie preferences saved: Accepted All', 'success');
+      });
+    }
     
-    el.btnCookieDecline.addEventListener('click', () => {
-      localStorage.setItem('et_cookies', 'declined');
-      el.cookieBanner.classList.add('hidden');
-      showToast('🍪 Cookie preferences saved: Declined optional', 'info');
-    });
+    if (el.btnCookieDecline) {
+      el.btnCookieDecline.addEventListener('click', () => {
+        safeStorage.setItem('et_cookies', 'declined');
+        el.cookieBanner.classList.add('hidden');
+        showToast('🍪 Cookie preferences saved: Declined optional', 'info');
+      });
+    }
 
     // Find and Replace Widget Toggle
     const handleFindToggle = () => {
@@ -3112,17 +3027,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function togglePopover(name) {
       Object.keys(popovers).forEach(key => {
+        if (!popovers[key] || !popoverTriggers[key]) return;
         if (key === name) {
-          popovers[key].classList.toggle('hidden');
-          if (!popovers[key].classList.contains('hidden')) {
+          const isCurrentlyHidden = popovers[key].classList.contains('hidden');
+          if (isCurrentlyHidden) {
+            popovers[key].classList.remove('hidden');
             popoverTriggers[key].classList.add('active');
+            popoverTriggers[key].setAttribute('aria-expanded', 'true');
             positionPopover(key);
           } else {
+            popovers[key].classList.add('hidden');
             popoverTriggers[key].classList.remove('active');
+            popoverTriggers[key].setAttribute('aria-expanded', 'false');
           }
         } else {
           popovers[key].classList.add('hidden');
           popoverTriggers[key].classList.remove('active');
+          popoverTriggers[key].setAttribute('aria-expanded', 'false');
         }
       });
     }
@@ -3130,7 +3051,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeAllPopovers() {
       Object.keys(popovers).forEach(key => {
         if (popovers[key]) popovers[key].classList.add('hidden');
-        if (popoverTriggers[key]) popoverTriggers[key].classList.remove('active');
+        if (popoverTriggers[key]) {
+          popoverTriggers[key].classList.remove('active');
+          popoverTriggers[key].setAttribute('aria-expanded', 'false');
+        }
       });
     }
 
@@ -3206,30 +3130,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Close buttons for Dialog modals
-    el.btnCloseDialog.addEventListener('click', () => el.infoDialog.close());
-    el.btnCloseShortcuts.addEventListener('click', () => el.shortcutsDialog.close());
-    el.btnCloseDriveDialog.addEventListener('click', () => el.driveDialog.close());
-    el.btnCloseAuthDialog.addEventListener('click', () => el.authDialog.close());
+    if (el.btnCloseDialog) el.btnCloseDialog.addEventListener('click', () => el.infoDialog.close());
+    if (el.btnCloseShortcuts) el.btnCloseShortcuts.addEventListener('click', () => el.shortcutsDialog.close());
     if (el.btnCloseSettingsDialog) el.btnCloseSettingsDialog.addEventListener('click', () => el.settingsDialog.close());
-
-    // Google Drive Dialog Buttons
-    el.btnDriveConnect.addEventListener('click', () => {
-      el.driveDialog.close();
-      el.authDialog.showModal();
-    });
-    
-    el.btnDriveSync.addEventListener('click', () => {
-      if (!state.googleUser) {
-        showToast('⚠️ Please sign in with Google first', 'error');
-        return;
-      }
-      showToast('☁️ Syncing document with Google Drive...', 'info');
-      setTimeout(() => {
-        showToast('✔️ Successfully synchronized active file!', 'success');
-      }, 1500);
-    });
-
-    // Google Drive Sync button inside Settings Dialog
 
 
     // Settings Dialog Option Select Listeners
@@ -3456,8 +3359,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     bindCheckbox(el.chkCopyWithoutSelection, 'copyWithoutSelection');
 
-    // Dialog click on backdrops to close them
-    const registerBackdropClose = (modal) => {
+    // Dialog click on backdrops to close them and focus management
+    const registerModalEvents = (modal) => {
+      if (!modal) return;
       modal.addEventListener('click', (e) => {
         const rect = modal.getBoundingClientRect();
         const isInDialog = (
@@ -3466,8 +3370,15 @@ document.addEventListener('DOMContentLoaded', () => {
         );
         if (!isInDialog) modal.close();
       });
+
+      modal.addEventListener('close', () => {
+        if (lastFocusedTrigger && typeof lastFocusedTrigger.focus === 'function') {
+          lastFocusedTrigger.focus();
+          lastFocusedTrigger = null;
+        }
+      });
     };
-    [el.infoDialog, el.shortcutsDialog, el.driveDialog, el.authDialog, el.commandPaletteDialog, el.settingsDialog].forEach(registerBackdropClose);
+    [el.infoDialog, el.shortcutsDialog, el.commandPaletteDialog, el.settingsDialog].filter(Boolean).forEach(registerModalEvents);
 
     // Keyboard Hotkeys
     window.addEventListener('keydown', (e) => {
@@ -3567,7 +3478,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- COMMAND PALETTE LOGIC ---
   const commands = [
-    { name: 'Show settings menu', shortcut: 'Ctrl-,', action: () => { if (el.settingsDialog) el.settingsDialog.showModal(); else el.driveDialog.showModal(); } },
+    { name: 'Show settings menu', shortcut: 'Ctrl-,', action: () => { if (el.settingsDialog) { syncSettingsUI(); el.settingsDialog.showModal(); } } },
     { name: 'Select all', shortcut: 'Ctrl-A', action: () => { el.textarea.focus(); el.textarea.select(); } },
     { name: 'Center selection', shortcut: '', action: () => { centerTextareaSelection(); } },
     { name: 'Go to line...', shortcut: 'Ctrl-L', action: () => { jumpToLineNumber(); } },

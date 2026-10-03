@@ -1103,12 +1103,18 @@ aside.sidebar.collapsed {
     max-width: 380px !important;
   }
 
-  /* Hide standard footer on mobile viewports completely */
+  /* Show standard footer on mobile landing viewports */
   footer.glass-panel {
-    display: none !important;
+    display: flex !important;
+    position: relative !important;
+    width: 100% !important;
+    margin-top: auto !important;
+    padding: var(--space-2) var(--space-2) !important;
+    justify-content: center !important;
+    text-align: center !important;
   }
 
-  /* Footer hiding in editor mode (only for standard app footer on desktop) */
+  /* Footer hiding in editor mode on desktop and mobile */
   body.editor-active footer.glass-panel {
     display: none !important;
   }
@@ -1366,22 +1372,9 @@ aside.sidebar.collapsed {
     overflow: visible !important;
   }
 
-  /* Mobile Footer Cleanup - Hide about texts and headings */
-  .seo-footer {
-    padding: 24px 16px !important;
-  }
-
-  .seo-footer h2,
-  .seo-footer p:nth-of-type(1),
-  .seo-footer p:nth-of-type(2) {
-    display: none !important;
-  }
-
-  /* Show SEO footer at the bottom of the scrollable page on mobile */
-  footer.seo-footer {
-    display: block !important;
-    position: relative !important;
-    margin-top: auto !important;
+  /* Welcome SEO section styling on mobile */
+  .welcome-about-seo {
+    padding: var(--space-2) var(--space-1) !important;
   }
 
   /* Respect preferred-reduced-motion for accessibility */

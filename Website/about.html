@@ -26,8 +26,12 @@
   <!-- Instant Theme Switcher to prevent white flashes -->
   <script>
     (function() {
-      const savedTheme = localStorage.getItem('et_theme') || 'light';
-      document.documentElement.setAttribute('data-theme', savedTheme);
+      try {
+        const savedTheme = localStorage.getItem('et_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
     })();
   </script>
   

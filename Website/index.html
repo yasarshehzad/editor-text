@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-0EBSXZSXJ4"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-0EBSXZSXJ4');
+  </script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -36,19 +46,6 @@
   <!-- Custom CSS -->
   <link rel="stylesheet" href="styles.css?v=1.0.10">
 
-  <!-- Google Identity Services (GIS) Client SDK -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-0EBSXZSXJ4"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-0EBSXZSXJ4');
-  </script>
-
   <!-- JSON-LD Structured Schema.org Data -->
   <script type="application/ld+json">
   {
@@ -79,12 +76,12 @@
     <!-- HEADER -->
     <header class="glass-panel" id="main-header">
       <div class="brand-section">
-        <a href="index.html" class="logo-link" style="display: flex; align-items: center; text-decoration: none; color: inherit; gap: 8px;">
-          <img class="logo-img" src="images/logo.png" alt="Editor Text Logo" style="width: 28px; height: 28px; border-radius: 6px; box-shadow: none; object-fit: contain;">
+        <a href="index.html" class="logo-link" style="display: flex; align-items: center; text-decoration: none; color: inherit; gap: var(--space-1);">
+          <img class="logo-img" src="images/logo.png" alt="Editor Text Logo" style="width: 28px; height: 28px; border-radius: 8px; box-shadow: none; object-fit: contain;">
           <span class="brand-title">Editor Text</span>
         </a>
         
-        <div class="filename-container" title="Click to rename file" style="margin-left: 12px;">
+        <div class="filename-container" title="Click to rename file" style="margin-left: var(--space-2);">
           <input type="text" id="filename" class="filename-input" value="untitled" aria-label="File Name">
           <span id="file-extension" class="filename-ext">.txt</span>
         </div>
@@ -93,32 +90,32 @@
       <!-- MAIN ACTIONS BAR -->
       <div class="actions-bar" id="header-actions">
         <!-- New File -->
-        <button class="btn" id="btn-new" title="Create New Document (Ctrl+N)">
+        <button class="btn" id="btn-new" title="Create New Document (Ctrl+N)" aria-label="Create New Document (Ctrl+N)">
           <span class="material-symbols-outlined">add_box</span>
           <span>New</span>
         </button>
 
         <!-- Open File -->
-        <button class="btn" id="btn-open" title="Open Local File (Ctrl+O)">
+        <button class="btn" id="btn-open" title="Open Local File (Ctrl+O)" aria-label="Open Local File (Ctrl+O)">
           <span class="material-symbols-outlined">folder_open</span>
           <span>Open</span>
         </button>
-        <input type="file" id="file-selector" accept=".txt,.js,.css,.html,.json,.md,.png,.jpg,.jpeg">
+        <input type="file" id="file-selector" accept=".txt,.js,.css,.html,.json,.md,.png,.jpg,.jpeg" aria-label="Choose file to open">
 
         <!-- Save/Download File -->
-        <button class="btn btn-primary" id="btn-save" title="Save / Download File (Ctrl+S)">
+        <button class="btn btn-primary" id="btn-save" title="Save / Download File (Ctrl+S)" aria-label="Save / Download File (Ctrl+S)">
           <span class="material-symbols-outlined">download</span>
           <span>Save</span>
         </button>
 
         <!-- Copy File Content -->
-        <button class="btn" id="btn-copy" title="Copy Content to Clipboard">
+        <button class="btn" id="btn-copy" title="Copy Content to Clipboard" aria-label="Copy Document Content to Clipboard">
           <span class="material-symbols-outlined">content_copy</span>
           <span>Copy</span>
         </button>
 
         <!-- Find & Replace Widget Toggle -->
-        <button class="btn" id="btn-find-replace-toggle" title="Find and Replace (Ctrl+F)">
+        <button class="btn" id="btn-find-replace-toggle" title="Find and Replace (Ctrl+F)" aria-label="Find and Replace in Document (Ctrl+F)">
           <span class="material-symbols-outlined">search</span>
           <span>Find</span>
         </button>
@@ -141,11 +138,11 @@
     <!-- NAVIGATION TABS -->
     <nav class="tab-nav">
       <div class="tab-switcher">
-        <button class="tab-btn active" id="tab-text" aria-selected="true" role="tab">
+        <button class="tab-btn active" id="tab-text" aria-selected="true" role="tab" aria-label="Switch to Text Editor tab">
           <span class="material-symbols-outlined">description</span>
           Text Editor
         </button>
-        <button class="tab-btn" id="tab-photo" aria-selected="false" role="tab">
+        <button class="tab-btn" id="tab-photo" aria-selected="false" role="tab" aria-label="Switch to Photo Editor tab">
           <span class="material-symbols-outlined">photo_camera</span>
           Photo Editor
         </button>
@@ -161,17 +158,17 @@
         <div class="find-replace-bar hidden" id="find-replace-bar">
           <div class="find-input-group">
             <span class="material-symbols-outlined" style="font-size: 1.1rem; color: var(--text-secondary);">search</span>
-            <input type="text" id="find-input" placeholder="Find...">
+            <input type="text" id="find-input" placeholder="Find..." aria-label="Search text">
           </div>
           <div class="find-input-group">
             <span class="material-symbols-outlined" style="font-size: 1.1rem; color: var(--text-secondary);">find_replace</span>
-            <input type="text" id="replace-input" placeholder="Replace with...">
+            <input type="text" id="replace-input" placeholder="Replace with..." aria-label="Replacement text">
           </div>
           <div class="find-actions">
-            <button class="btn" id="btn-find-next" title="Find Next">Next</button>
-            <button class="btn" id="btn-replace" title="Replace Match">Replace</button>
-            <button class="btn" id="btn-replace-all" title="Replace All Matches">All</button>
-            <button class="btn btn-icon-only btn-danger" id="btn-close-find" title="Close Find Bar">
+            <button class="btn" id="btn-find-next" title="Find Next" aria-label="Find next match">Next</button>
+            <button class="btn" id="btn-replace" title="Replace Match" aria-label="Replace current match">Replace</button>
+            <button class="btn" id="btn-replace-all" title="Replace All Matches" aria-label="Replace all occurrences">All</button>
+            <button class="btn btn-icon-only btn-danger" id="btn-close-find" title="Close Find Bar" aria-label="Close find and replace bar">
               <span class="material-symbols-outlined">close</span>
             </button>
           </div>
@@ -241,30 +238,30 @@
 
           <!-- Text Formatting Buttons -->
           <div class="toolbar-group">
-            <button class="tool-btn" id="btn-bold" title="Wrap selection in Bold Tags (<b>) (Ctrl+B)">
+            <button class="tool-btn" id="btn-bold" title="Wrap selection in Bold Tags (Ctrl+B)" aria-label="Bold text (Ctrl+B)">
               <span class="material-symbols-outlined">format_bold</span>
             </button>
-            <button class="tool-btn" id="btn-italic" title="Wrap selection in Italic Tags (<i>) (Ctrl+I)">
+            <button class="tool-btn" id="btn-italic" title="Wrap selection in Italic Tags (Ctrl+I)" aria-label="Italic text (Ctrl+I)">
               <span class="material-symbols-outlined">format_italic</span>
             </button>
-            <button class="tool-btn" id="btn-underline" title="Wrap selection in Underline Tags (<u>) (Ctrl+U)">
+            <button class="tool-btn" id="btn-underline" title="Wrap selection in Underline Tags (Ctrl+U)" aria-label="Underline text (Ctrl+U)">
               <span class="material-symbols-outlined">format_underlined</span>
             </button>
-            <button class="tool-btn" id="btn-strike" title="Wrap selection in Strikethrough Tags (<s>)">
+            <button class="tool-btn" id="btn-strike" title="Wrap selection in Strikethrough Tags" aria-label="Strikethrough text">
               <span class="material-symbols-outlined">strikethrough_s</span>
             </button>
-            <button class="tool-btn font-weight-bold-text" id="btn-h1" title="Heading 1 (<h1>)" style="font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; justify-content: center;">
+            <button class="tool-btn font-weight-bold-text" id="btn-h1" title="Heading 1" aria-label="Format as Heading 1" style="font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; justify-content: center;">
               <span>H1</span>
             </button>
-            <button class="tool-btn font-weight-bold-text" id="btn-h2" title="Heading 2 (<h2>)" style="font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; justify-content: center;">
+            <button class="tool-btn font-weight-bold-text" id="btn-h2" title="Heading 2" aria-label="Format as Heading 2" style="font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; justify-content: center;">
               <span>H2</span>
             </button>
-            <button class="tool-btn" id="btn-link" title="Insert Link (<a>)">
+            <button class="tool-btn" id="btn-link" title="Insert Link" aria-label="Insert Link">
               <span class="material-symbols-outlined">link</span>
             </button>
 
             <!-- Case Transformations Dropdown -->
-            <button class="tool-btn" id="btn-toolbar-more" title="Case Transformations">
+            <button class="tool-btn" id="btn-toolbar-more" title="Case Transformations" aria-label="Case Transformations" aria-haspopup="true" aria-expanded="false">
               <span class="material-symbols-outlined">more_horiz</span>
             </button>
           </div>
@@ -273,13 +270,13 @@
 
           <!-- Undo/Redo/Print -->
           <div class="toolbar-group">
-            <button class="tool-btn" id="btn-toolbar-undo" title="Undo (Ctrl+Z)">
+            <button class="tool-btn" id="btn-toolbar-undo" title="Undo (Ctrl+Z)" aria-label="Undo last change (Ctrl+Z)">
               <span class="material-symbols-outlined">undo</span>
             </button>
-            <button class="tool-btn" id="btn-toolbar-redo" title="Redo (Ctrl+Y)">
+            <button class="tool-btn" id="btn-toolbar-redo" title="Redo (Ctrl+Y)" aria-label="Redo change (Ctrl+Y)">
               <span class="material-symbols-outlined">redo</span>
             </button>
-            <button class="tool-btn" id="btn-toolbar-print" title="Print Document (Ctrl+P)">
+            <button class="tool-btn" id="btn-toolbar-print" title="Print Document (Ctrl+P)" aria-label="Print Document (Ctrl+P)">
               <span class="material-symbols-outlined">print</span>
             </button>
           </div>
@@ -288,19 +285,19 @@
           
           <!-- View Preferences -->
           <div class="toolbar-group">
-            <button class="tool-btn active" id="btn-toolbar-lines" title="Toggle Line Numbers">
+            <button class="tool-btn active" id="btn-toolbar-lines" title="Toggle Line Numbers" aria-label="Toggle Line Numbers">
               <span class="material-symbols-outlined">format_list_numbered</span>
             </button>
-            <button class="tool-btn" id="btn-toolbar-wrap" title="Cycle Word Wrap modes">
+            <button class="tool-btn" id="btn-toolbar-wrap" title="Cycle Word Wrap modes" aria-label="Cycle Word Wrap modes">
               <span class="material-symbols-outlined">wrap_text</span>
             </button>
-            <button class="tool-btn" id="btn-toolbar-margin" title="Cycle Print Margin (80ch / 100ch / Off)">
+            <button class="tool-btn" id="btn-toolbar-margin" title="Cycle Print Margin (80ch / 100ch / Off)" aria-label="Cycle Print Margin">
               <span class="material-symbols-outlined">vertical_align_center</span>
             </button>
-            <button class="tool-btn" id="btn-toolbar-whitespace" title="Toggle Visible Whitespace">
+            <button class="tool-btn" id="btn-toolbar-whitespace" title="Toggle Visible Whitespace" aria-label="Toggle Visible Whitespace">
               <span class="material-symbols-outlined">space_bar</span>
             </button>
-            <button class="tool-btn" id="btn-toolbar-tab" title="Cycle Tab Mode (Hard Tab / 2 spaces / 4 spaces)">
+            <button class="tool-btn" id="btn-toolbar-tab" title="Cycle Tab Mode (Hard Tab / 2 spaces / 4 spaces)" aria-label="Cycle Tab Mode Indentation">
               <span class="material-symbols-outlined">keyboard_tab</span>
             </button>
           </div>
@@ -309,7 +306,7 @@
           
           <!-- Palette/Theme Selection -->
           <div class="toolbar-group">
-            <button class="tool-btn" id="btn-toolbar-theme" title="Theme Selector">
+            <button class="tool-btn" id="btn-toolbar-theme" title="Theme Selector" aria-label="Select App Theme" aria-haspopup="true" aria-expanded="false">
               <span class="material-symbols-outlined">palette</span>
             </button>
           </div>
@@ -318,10 +315,10 @@
           
           <!-- Find/Replace & Go to Line -->
           <div class="toolbar-group">
-            <button class="tool-btn" id="btn-toolbar-find" title="Find &amp; Replace (Ctrl+F)">
+            <button class="tool-btn" id="btn-toolbar-find" title="Find &amp; Replace (Ctrl+F)" aria-label="Find and Replace (Ctrl+F)">
               <span class="material-symbols-outlined">find_replace</span>
             </button>
-            <button class="tool-btn" id="btn-toolbar-gotoline" title="Go to Line (Ctrl+G)">
+            <button class="tool-btn" id="btn-toolbar-gotoline" title="Go to Line (Ctrl+G)" aria-label="Go to Line (Ctrl+G)">
               <span class="material-symbols-outlined">arrow_forward</span>
             </button>
           </div>
@@ -330,23 +327,23 @@
           
           <!-- Live Preview split toggle (>> in screenshot) and Full Screen Preview -->
           <div class="toolbar-group">
-            <button class="tool-btn" id="btn-split-toggle" title="Toggle Split Live HTML Preview">
+            <button class="tool-btn" id="btn-split-toggle" title="Toggle Split Live HTML Preview" aria-label="Toggle Split Live HTML Preview">
               <span class="material-symbols-outlined" style="font-weight: 600;">double_arrow</span>
             </button>
-            <button class="tool-btn" id="btn-fullscreen-preview" title="Full Screen HTML Preview">
+            <button class="tool-btn" id="btn-fullscreen-preview" title="Full Screen HTML Preview" aria-label="Full Screen HTML Preview">
               <span class="material-symbols-outlined">visibility</span>
             </button>
           </div>
           
           <!-- Utilities (Right aligned) -->
           <div class="toolbar-group" style="margin-left: auto;">
-            <button class="tool-btn" id="btn-toolbar-shortcuts" title="Keyboard Shortcuts (Ctrl+/)">
+            <button class="tool-btn" id="btn-toolbar-shortcuts" title="Keyboard Shortcuts (Ctrl+/)" aria-label="View Keyboard Shortcuts (Ctrl+/)">
               <span class="material-symbols-outlined">keyboard</span>
             </button>
-            <button class="tool-btn" id="btn-toolbar-settings" title="Google Sync Settings">
+            <button class="tool-btn" id="btn-toolbar-settings" title="Editor Settings" aria-label="Open Editor Settings">
               <span class="material-symbols-outlined">settings</span>
             </button>
-            <button class="tool-btn" id="btn-toolbar-about" title="About Editor Text">
+            <button class="tool-btn" id="btn-toolbar-about" title="About Editor Text" aria-label="About Editor Text">
               <span class="material-symbols-outlined">star</span>
             </button>
           </div>
@@ -355,24 +352,20 @@
         <!-- Welcome Landing View -->
         <div id="welcome-screen" class="welcome-screen">
           <div class="welcome-container glass-panel">
-            <img src="images/logo.png" alt="Editor Text Logo" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 16px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+            <img src="images/logo.png" alt="Editor Text Logo" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: var(--space-2); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
             <h2>Welcome to Editor Text</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 0.95rem;">Editor Text is a free app that allows you to create, open, and edit text files on your computer and Google Drive.</p>
+            <p style="color: var(--text-secondary); margin-bottom: var(--space-3); font-size: 0.95rem;">Editor Text is a free, fast, and private online text editor that allows you to create, open, and edit text and code files securely in your browser.</p>
             
-            <div class="welcome-btn-layout" style="display: flex; flex-direction: column; gap: 12px; align-items: center; margin-bottom: 32px; width: 100%;">
-              <button class="btn btn-success" id="btn-welcome-create" style="width: 100%; max-width: 380px; justify-content: center; font-size: 1rem; padding: 12px 24px;">
+            <div class="welcome-btn-layout" style="display: flex; flex-direction: column; gap: var(--space-2); align-items: center; margin-bottom: var(--space-4); width: 100%;">
+              <button class="btn btn-success" id="btn-welcome-create" style="width: 100%; max-width: 384px; justify-content: center; font-size: 1rem; padding: var(--space-2) var(--space-3);" aria-label="Create New Text File">
                 <span class="material-symbols-outlined">add_box</span>
                 <span>Create New Text File</span>
               </button>
               
-              <div class="btn-group" style="justify-content: center; width: 100%; gap: 12px;">
-                <button class="btn btn-primary" id="btn-welcome-open-comp" style="flex: 1; max-width: 200px; justify-content: center;">
+              <div class="btn-group" style="justify-content: center; width: 100%; max-width: 384px; gap: var(--space-2);">
+                <button class="btn btn-primary" id="btn-welcome-open-comp" style="width: 100%; justify-content: center;" aria-label="Open File from Computer">
                   <span class="material-symbols-outlined">computer</span>
                   <span>Open from Computer</span>
-                </button>
-                <button class="btn" id="btn-welcome-open-drive" style="flex: 1; max-width: 200px; justify-content: center;">
-                  <span class="material-symbols-outlined">cloud_upload</span>
-                  <span>Open from Drive</span>
                 </button>
               </div>
             </div>
@@ -382,22 +375,33 @@
               <div class="welcome-card">
                 <h3>📖 How to use Editor Text</h3>
                 <ul>
-                  <li>Select a text file from your computer, Google Drive, or GMail attachment.</li>
-                  <li>The file will be displayed in your browser where you can then make changes.</li>
-                  <li>After edits are made, save back to Google Drive using the cloud sync toolbar button.</li>
-                  <li>Download a copy of the file to your computer using the "Download" button.</li>
+                  <li>Create a new document or open any local text or code file from your device.</li>
+                  <li>Type, format text, write code, or edit Markdown with live preview and analytics.</li>
+                  <li>Drafts are automatically saved in your browser so your progress is never lost.</li>
+                  <li>Download or export your files at any time with custom file extensions.</li>
                 </ul>
               </div>
               <div class="welcome-card">
                 <h3>⚙️ How Editor Text works</h3>
                 <ul>
-                  <li>Pure Javascript web app: all processing is done 100% locally in your browser.</li>
-                  <li>Can open all text file types including TXT, CSV, HTML, XML, CSS, JSON, C++, Java, and Python.</li>
-                  <li>Premium features: syntax styling helper, word wrap modes, print margins, and themes.</li>
-                  <li>Complete keyboard shortcuts supported via the keyboard toolbar menu.</li>
+                  <li>100% Client-Side: all processing runs in your browser for absolute speed and privacy.</li>
+                  <li>Supports TXT, CSV, HTML, XML, CSS, JS, TS, JSON, Python, C++, SQL, and Markdown.</li>
+                  <li>Features: visual &amp; code modes, word wrap, line numbers, themes, and photo filters.</li>
+                  <li>Full keyboard shortcut integration for rapid, distraction-free productivity.</li>
                 </ul>
               </div>
             </div>
+
+            <!-- SEO Semantic Section -->
+            <section class="welcome-about-seo" aria-label="About Editor Text" style="margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--border-color); text-align: left;">
+              <h3 style="font-size: 1.05rem; color: var(--text-primary); margin-bottom: var(--space-1); font-weight: 600;">Fast, Private &amp; Modern Online Text Editor</h3>
+              <p style="margin-bottom: var(--space-1); color: var(--text-secondary); line-height: 1.6; font-size: 0.88rem;">
+                <strong>Editor Text</strong> is a free, modern online text editor and document creation tool built for speed, privacy, and simplicity. You can create, open, edit, format, and download text files directly in your web browser. There is no need to install heavy software, and your files never leave your device.
+              </p>
+              <p style="color: var(--text-secondary); line-height: 1.6; font-size: 0.88rem;">
+                Features include real-time word counting, reading time analytics, syntax styling helper, live preview, customizable word wrap modes, and themes. Whether you're drafting quick notes, writing code, or formatting Markdown, Editor Text provides a clean, responsive interface to keep your focus on your text.
+              </p>
+            </section>
           </div>
         </div>
 
@@ -454,7 +458,7 @@
                 <span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle; margin-right: 4px;">language</span>
                 Live HTML Preview
               </span>
-              <button class="btn btn-run-preview" id="btn-run-preview" title="Refresh Live Preview (Alt+R)">
+              <button class="btn btn-run-preview" id="btn-run-preview" title="Refresh Live Preview (Alt+R)" aria-label="Refresh Live Preview (Alt+R)">
                 <span class="material-symbols-outlined" style="font-size: 1.1rem;">play_arrow</span>
                 <span>Run</span>
               </button>
@@ -464,42 +468,42 @@
         </div>
 
         <!-- Popovers extracted from toolbar to prevent horizontal scroll clipping on mobile -->
-        <div class="toolbar-popover hidden" id="popover-more" style="width: 160px;">
+        <div class="toolbar-popover hidden" id="popover-more" role="menu" aria-label="Case conversion options" style="width: 160px;">
           <div class="popover-header">Case Conversions</div>
           <div class="popover-section">
-            <button class="popover-item" id="btn-upper" title="Convert selected to Uppercase">
+            <button class="popover-item" id="btn-upper" role="menuitem" title="Convert selected to Uppercase" aria-label="Convert selection to Uppercase">
               <span style="font-weight: bold; font-size: 0.8rem; padding: 2px 4px;">AA</span>
               <span>Uppercase</span>
             </button>
-            <button class="popover-item" id="btn-lower" title="Convert selected to Lowercase">
+            <button class="popover-item" id="btn-lower" role="menuitem" title="Convert selected to Lowercase" aria-label="Convert selection to Lowercase">
               <span style="font-style: italic; font-size: 0.8rem; padding: 2px 4px;">aa</span>
               <span>Lowercase</span>
             </button>
-            <button class="popover-item" id="btn-title" title="Convert selected to Title Case">
+            <button class="popover-item" id="btn-title" role="menuitem" title="Convert selected to Title Case" aria-label="Convert selection to Title Case">
               <span style="font-weight: bold; font-size: 0.8rem; padding: 2px 4px;">Aa</span>
               <span>Title Case</span>
             </button>
           </div>
         </div>
 
-        <div class="toolbar-popover hidden" id="popover-theme" style="width: 220px;">
+        <div class="toolbar-popover hidden" id="popover-theme" role="region" aria-label="App theme selection" style="width: 224px;">
           <div class="popover-header">Select App Theme</div>
-          <div class="popover-body-content" style="padding: 12px; display: flex; flex-direction: column; gap: 8px; text-align: left;">
-            <div class="theme-card-option" data-theme-val="light" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #ffffff; color: #1f2937;">
+          <div class="popover-body-content" style="padding: var(--space-2); display: flex; flex-direction: column; gap: var(--space-1); text-align: left;">
+            <div class="theme-card-option" data-theme-val="light" role="button" tabindex="0" aria-label="Select Light Clean theme" style="padding: var(--space-1) var(--space-2); border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #ffffff; color: #1f2937;">
               <span style="font-weight: 600; font-size: 0.85rem;">Light Clean</span>
-              <span style="width: 14px; height: 14px; border-radius: 50%; background: #0d9488;"></span>
+              <span style="width: 16px; height: 16px; border-radius: 50%; background: #0d9488;"></span>
             </div>
-            <div class="theme-card-option" data-theme-val="dark" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #0a0a0f; color: #f3f4f6;">
+            <div class="theme-card-option" data-theme-val="dark" role="button" tabindex="0" aria-label="Select Dark Space theme" style="padding: var(--space-1) var(--space-2); border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #0a0a0f; color: #f3f4f6;">
               <span style="font-weight: 600; font-size: 0.85rem;">Dark Space</span>
-              <span style="width: 14px; height: 14px; border-radius: 50%; background: #3b82f6;"></span>
+              <span style="width: 16px; height: 16px; border-radius: 50%; background: #3b82f6;"></span>
             </div>
-            <div class="theme-card-option" data-theme-val="cyberpunk" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #0d0015; color: #00ffff;">
+            <div class="theme-card-option" data-theme-val="cyberpunk" role="button" tabindex="0" aria-label="Select Cyberpunk theme" style="padding: var(--space-1) var(--space-2); border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #0d0015; color: #00ffff;">
               <span style="font-weight: 600; font-size: 0.85rem;">Cyberpunk</span>
-              <span style="width: 14px; height: 14px; border-radius: 50%; background: #ff007f;"></span>
+              <span style="width: 16px; height: 16px; border-radius: 50%; background: #ff007f;"></span>
             </div>
-            <div class="theme-card-option" data-theme-val="forest" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #0f1c15; color: #ecfdf5;">
+            <div class="theme-card-option" data-theme-val="forest" role="button" tabindex="0" aria-label="Select Forest theme" style="padding: var(--space-1) var(--space-2); border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #0f1c15; color: #ecfdf5;">
               <span style="font-weight: 600; font-size: 0.85rem;">Forest</span>
-              <span style="width: 14px; height: 14px; border-radius: 50%; background: #10b981;"></span>
+              <span style="width: 16px; height: 16px; border-radius: 50%; background: #10b981;"></span>
             </div>
           </div>
         </div>
@@ -613,21 +617,21 @@
               Transformations
             </h2>
             <div class="btn-group-full">
-              <button class="btn" id="btn-rotate" title="Rotate 90 Degrees Clockwise">
+              <button class="btn" id="btn-rotate" title="Rotate 90 Degrees Clockwise" aria-label="Rotate image 90 degrees clockwise">
                 <span class="material-symbols-outlined">rotate_right</span>
                 <span>Rotate 90°</span>
               </button>
-              <button class="btn" id="btn-flip-h" title="Flip Horizontally">
+              <button class="btn" id="btn-flip-h" title="Flip Horizontally" aria-label="Flip image horizontally">
                 <span class="material-symbols-outlined">flip</span>
                 <span>Flip Horiz</span>
               </button>
             </div>
-            <div class="btn-group-full" style="margin-top: 8px;">
-              <button class="btn" id="btn-flip-v" title="Flip Vertically">
+            <div class="btn-group-full" style="margin-top: var(--space-1);">
+              <button class="btn" id="btn-flip-v" title="Flip Vertically" aria-label="Flip image vertically">
                 <span class="material-symbols-outlined">flip</span>
                 <span>Flip Vert</span>
               </button>
-              <button class="btn btn-danger" id="btn-clear-photo" title="Remove Photo">
+              <button class="btn btn-danger" id="btn-clear-photo" title="Remove Photo" aria-label="Remove photo and clear canvas">
                 <span class="material-symbols-outlined">delete</span>
                 <span>Delete</span>
               </button>
@@ -641,7 +645,7 @@
                 <span class="material-symbols-outlined">brush</span>
                 Filter Adjustments
               </h2>
-              <button class="btn" id="btn-reset-filters" style="padding: 4px 8px; font-size: 0.75rem;">Reset</button>
+              <button class="btn" id="btn-reset-filters" style="padding: 4px var(--space-1); font-size: 0.75rem;" aria-label="Reset all photo filters to default">Reset</button>
             </div>
 
             <!-- Brightness -->
@@ -883,11 +887,11 @@
       <div class="settings-row">
         <span class="settings-label">Keybinding</span>
         <div class="settings-btn-group" id="settings-keybindings">
-          <button class="settings-btn-opt active" data-val="ace">Ace</button>
-          <button class="settings-btn-opt" data-val="vim">Vim</button>
-          <button class="settings-btn-opt" data-val="emacs">Emacs</button>
-          <button class="settings-btn-opt" data-val="sublime">Sublime</button>
-          <button class="settings-btn-opt" data-val="vscode">VSCode</button>
+          <button class="settings-btn-opt active" data-val="ace" aria-label="Ace keybinding">Ace</button>
+          <button class="settings-btn-opt" data-val="vim" aria-label="Vim keybinding">Vim</button>
+          <button class="settings-btn-opt" data-val="emacs" aria-label="Emacs keybinding">Emacs</button>
+          <button class="settings-btn-opt" data-val="sublime" aria-label="Sublime keybinding">Sublime</button>
+          <button class="settings-btn-opt" data-val="vscode" aria-label="VSCode keybinding">VSCode</button>
         </div>
       </div>
 
@@ -895,9 +899,9 @@
       <div class="settings-row">
         <label for="settings-font-size-input" class="settings-label">Font Size</label>
         <div class="settings-input-row">
-          <input type="number" id="settings-font-size-input" class="settings-number-input" value="16" min="8" max="72">
-          <button class="settings-btn-action" id="settings-btn-font-12">12px</button>
-          <button class="settings-btn-action" id="settings-btn-font-24">24px</button>
+          <input type="number" id="settings-font-size-input" class="settings-number-input" value="16" min="8" max="72" aria-label="Font size in pixels">
+          <button class="settings-btn-action" id="settings-btn-font-12" aria-label="Set font size to 12 pixels">12px</button>
+          <button class="settings-btn-action" id="settings-btn-font-24" aria-label="Set font size to 24 pixels">24px</button>
         </div>
       </div>
 
@@ -906,18 +910,18 @@
         <span class="settings-label">Soft Wrap</span>
         <div class="settings-input-row">
           <div class="settings-btn-group" id="settings-wrap-mode">
-            <button class="settings-btn-opt active" data-val="off">Off</button>
-            <button class="settings-btn-opt" data-val="view">View</button>
-            <button class="settings-btn-opt" data-val="margin">margin</button>
+            <button class="settings-btn-opt active" data-val="off" aria-label="Wrap mode off">Off</button>
+            <button class="settings-btn-opt" data-val="view" aria-label="Wrap to viewport width">View</button>
+            <button class="settings-btn-opt" data-val="margin" aria-label="Wrap at print margin">margin</button>
           </div>
-          <input type="number" id="settings-wrap-limit" class="settings-number-input" value="40" min="10" max="200" title="Wrap character limit">
+          <input type="number" id="settings-wrap-limit" class="settings-number-input" value="40" min="10" max="200" title="Wrap character limit" aria-label="Wrap character limit">
         </div>
       </div>
 
       <!-- Cursor Style -->
       <div class="settings-row">
         <label for="settings-cursor-style" class="settings-label">Cursor Style</label>
-        <select id="settings-cursor-style" class="settings-select">
+        <select id="settings-cursor-style" class="settings-select" aria-label="Cursor Style">
           <option value="ace" selected>Ace</option>
           <option value="slim">Slim</option>
           <option value="smooth">Smooth</option>
@@ -928,7 +932,7 @@
       <!-- Folding -->
       <div class="settings-row">
         <label for="settings-folding" class="settings-label">Folding</label>
-        <select id="settings-folding" class="settings-select">
+        <select id="settings-folding" class="settings-select" aria-label="Code Folding Style">
           <option value="manual">Manual</option>
           <option value="mark-begin" selected>Mark begin</option>
           <option value="mark-begin-end">Mark begin and end</option>
@@ -941,16 +945,16 @@
           <input type="checkbox" id="settings-soft-tabs" checked>
           <span>Soft Tabs</span>
         </label>
-        <input type="number" id="settings-tab-size" class="settings-number-input" value="4" min="1" max="16" style="width: 60px;">
+        <input type="number" id="settings-tab-size" class="settings-number-input" value="4" min="1" max="16" style="width: 64px;" aria-label="Tab size in spaces">
       </div>
 
       <!-- Overscroll -->
       <div class="settings-row">
         <span class="settings-label">Overscroll</span>
         <div class="settings-btn-group" id="settings-overscroll">
-          <button class="settings-btn-opt active" data-val="none">None</button>
-          <button class="settings-btn-opt" data-val="half">Half</button>
-          <button class="settings-btn-opt" data-val="full">Full</button>
+          <button class="settings-btn-opt active" data-val="none" aria-label="No overscroll">None</button>
+          <button class="settings-btn-opt" data-val="half" aria-label="Half page overscroll">Half</button>
+          <button class="settings-btn-opt" data-val="full" aria-label="Full page overscroll">Full</button>
         </div>
       </div>
 
@@ -1061,143 +1065,21 @@
 
       <div class="settings-divider"></div>
 
-      <!-- Cloud / Google Drive integration trigger -->
-      <div class="settings-row" style="justify-content: center; padding: var(--space-1) 0;">
-        <button class="btn btn-google" id="settings-btn-google-drive" style="width: 100%; justify-content: center;">
-          <span class="material-symbols-outlined">cloud_sync</span>
-          <span>Google Drive Cloud Sync Options</span>
-        </button>
-      </div>
-
       <div class="settings-version-label">version 1.4.10</div>
     </div>
   </dialog>
 
-  <!-- GOOGLE DRIVE SYNC DIALOG -->
-  <dialog id="drive-dialog" class="glass-panel" aria-labelledby="drive-title">
-    <div class="dialog-header">
-      <h2 id="drive-title">Google Drive Connection</h2>
-      <button class="btn btn-icon-only btn-danger" id="btn-close-drive-dialog" aria-label="Close Dialog">
-        <span class="material-symbols-outlined">close</span>
-      </button>
-    </div>
-    <div class="dialog-body" style="text-align: center; padding: var(--space-4) var(--space-3);">
-      <span class="material-symbols-outlined" style="font-size: 4rem; color: #4285F4; margin-bottom: 16px;">cloud_sync</span>
-      <h3>Cloud Integration Sync</h3>
-      <p style="margin-top: 8px; margin-bottom: 24px;">Connect your Google Drive account to open and save files directly to the cloud.</p>
-      
-      <div class="control-group" style="max-width: 320px; margin: 0 auto 24px auto; text-align: left;">
-        <label for="drive-account" class="control-label">Select Account</label>
-        <select id="drive-account" class="control-input">
-          <option value="none">Disconnected</option>
-          <option value="user">info@editortext.com (Connected)</option>
-        </select>
-      </div>
-
-      <div class="btn-group" style="justify-content: center;">
-        <button class="btn btn-primary" id="btn-drive-connect">Connect Account</button>
-        <button class="btn" id="btn-drive-sync">Sync Active Draft</button>
-      </div>
-    </div>
-  </dialog>
-
-  <!-- GOOGLE SIGN IN DIALOG (AUTH DIALOG) -->
-  <dialog id="auth-dialog" class="glass-panel" aria-labelledby="auth-title">
-    <div class="dialog-header">
-      <h2 id="auth-title">Google Account</h2>
-      <button class="btn btn-icon-only btn-danger" id="btn-close-auth-dialog" aria-label="Close Dialog">
-        <span class="material-symbols-outlined">close</span>
-      </button>
-    </div>
-    <div class="dialog-body" style="text-align: center; padding: var(--space-4) var(--space-3);">
-      
-      <!-- LOGGED OUT VIEW -->
-      <div id="auth-logged-out-view">
-        <span class="material-symbols-outlined" style="font-size: 4rem; color: #4285F4; margin-bottom: 16px;">account_circle</span>
-        <h3>Sign In with Google</h3>
-        <p style="margin-top: 8px; margin-bottom: 24px; color: var(--text-secondary); font-size: 0.9rem;">Sign in to synchronize your text files and edit drafts seamlessly with Google Drive.</p>
-        
-        <!-- Google GIS button placeholder -->
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
-          <div id="google-gis-button-container" style="min-height: 40px;"></div>
-          
-          <div class="auth-divider" style="margin: 8px 0; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text-secondary); font-size: 0.8rem;">
-            <span style="height: 1px; background: var(--border-color); flex: 1;"></span>
-            <span>or use Sandbox Mode</span>
-            <span style="height: 1px; background: var(--border-color); flex: 1;"></span>
-          </div>
-          
-          <div class="control-group" style="width: 100%; max-width: 320px; text-align: left; margin-bottom: 12px;">
-            <label for="auth-test-email" class="control-label" style="font-size: 0.75rem;">Sandbox Email Address</label>
-            <input type="email" id="auth-test-email" class="control-input" placeholder="e.g. user@editortext.com" value="user@editortext.com">
-          </div>
-          
-          <button class="btn btn-primary" id="btn-do-login" style="width: 100%; max-width: 320px; justify-content: center;">
-            <span class="material-symbols-outlined">login</span>
-            <span>Sign In (Sandbox)</span>
-          </button>
-
-          <details style="width: 100%; max-width: 320px; text-align: left; margin-top: 16px;">
-            <summary style="font-size: 0.8rem; cursor: pointer; color: var(--text-secondary); outline: none; user-select: none;">⚙️ Configure Real Google Client ID</summary>
-            <div style="padding: 12px var(--space-1) 0 var(--space-1); display: flex; flex-direction: column; gap: var(--space-1);">
-              <input type="text" id="auth-client-id-input" class="control-input" style="font-size: 0.8rem; padding: 8px;" placeholder="e.g. xxxxx.apps.googleusercontent.com">
-              <button class="btn btn-primary" id="btn-save-client-id" style="font-size: 0.8rem; padding: 8px; justify-content: center;">Save &amp; Initialise</button>
-            </div>
-          </details>
-        </div>
-      </div>
-      
-      <!-- LOGGED IN VIEW -->
-      <div id="auth-logged-in-view" class="hidden">
-        <div class="profile-card" style="display: flex; flex-direction: column; align-items: center; margin-bottom: 24px;">
-          <img id="auth-profile-pic" class="auth-profile-large" src="" alt="Google Profile Pic" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--accent-color); box-shadow: none;">
-          <h3 id="auth-profile-name" style="margin-top: 16px; font-size: 1.15rem;">Google User</h3>
-          <p id="auth-profile-email" style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px;">user@example.com</p>
-        </div>
-        
-        <div class="btn-group" style="justify-content: center;">
-          <button class="btn btn-danger" id="btn-do-logout">
-            <span class="material-symbols-outlined">logout</span>
-            <span>Sign Out</span>
-          </button>
-        </div>
-      </div>
-      
-    </div>
-  </dialog>
-
   <!-- GDPR Cookie Consent Banner -->
-  <div id="cookie-banner" class="glass-panel cookie-banner hidden">
+  <div id="cookie-banner" class="glass-panel cookie-banner hidden" role="region" aria-label="Cookie consent">
     <div class="cookie-content">
       <span class="material-symbols-outlined" style="font-size: 2.2rem; color: var(--accent-color);">cookie</span>
-      <p>We use cookies and LocalStorage to remember your theme preferences, active editor drafts, and formatting configurations. No personal files or document text are ever uploaded to our servers. By using Editor Text, you consent to our terms.</p>
+      <p>We use LocalStorage to remember your theme preferences, active editor drafts, and formatting configurations. No personal files or document text are ever uploaded to our servers. By using Editor Text, you consent to our terms.</p>
     </div>
     <div class="cookie-actions">
-      <button class="btn btn-primary" id="btn-cookie-accept">Accept All</button>
-      <button class="btn" id="btn-cookie-decline">Decline Optional</button>
+      <button class="btn btn-primary" id="btn-cookie-accept" aria-label="Accept all cookies and local preferences">Accept All</button>
+      <button class="btn" id="btn-cookie-decline" aria-label="Decline optional cookies">Decline Optional</button>
     </div>
   </div>
-
-  <!-- SEO Semantic Footer for Organic Search & AI Bots -->
-  <footer class="seo-footer" style="padding: 40px 20px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); text-align: center; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
-    <div style="max-width: 800px; margin: 0 auto;">
-      <h2 style="font-size: 1.1rem; color: var(--text-primary); margin-bottom: 12px; font-weight: 600;">About Editor Text</h2>
-      <p style="margin-bottom: 16px;">
-        <strong>Editor Text</strong> is a free, modern online text editor and document creation tool built for speed, privacy, and simplicity. You can create, open, edit, format, and download text files directly in your web browser. There is no need to install heavy software, and your files never leave your device unless you choose to save them to the cloud.
-      </p>
-      <p style="margin-bottom: 24px;">
-        Our rich text editor includes advanced features such as real-time word counting, reading time analytics, seamless HTML live previews, and customizable text wrap controls. Whether you're drafting a quick note, writing code, or formatting a document, Editor Text provides a clean, flat, unobtrusive interface to keep your focus exactly where it belongs: on your text.
-      </p>
-      <nav style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-        <a href="about.html" style="color: var(--accent-color); text-decoration: none;">About</a>
-        <a href="privacy.html" style="color: var(--accent-color); text-decoration: none;">Privacy Policy</a>
-        <a href="terms.html" style="color: var(--accent-color); text-decoration: none;">Terms of Use</a>
-      </nav>
-      <p style="margin-top: 24px; font-size: 0.75rem; opacity: 0.7;">
-        &copy; 2026 Editor Text. All rights reserved.
-      </p>
-    </div>
-  </footer>
 
   <!-- Custom Logic JS -->
   <script src="app.js?v=1.0.10"></script>
