@@ -387,9 +387,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update theme selector position
     if (el.themeSelector) el.themeSelector.value = state.theme;
 
-    // Google Auth Sync on load
-    updateAuthUI();
-
     // Toggle Landing / Welcome page visibility
     toggleWelcomeVisibility();
     
