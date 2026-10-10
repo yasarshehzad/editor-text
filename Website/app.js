@@ -556,22 +556,25 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateTheme(themeName) {
     document.documentElement.setAttribute('data-theme', themeName);
     state.theme = themeName;
-    saveSettings();
+    state.editorTheme = themeName;
 
-    if (el.themeSelector) {
-      el.themeSelector.value = themeName;
-    }
-  }
-
-  function updateEditorTheme(themeName) {
+    // Synchronize editor workspace theme attribute
     const wrapper = document.getElementById('editor-layout-wrapper');
     if (wrapper) {
       wrapper.setAttribute('data-editor-theme', themeName);
     }
-    state.editorTheme = themeName;
-    saveSettings();
 
-    // Update theme card active states in popover
+    // Synchronize header theme selector
+    if (el.themeSelector) {
+      el.themeSelector.value = themeName;
+    }
+
+    // Synchronize settings dialog theme selector
+    if (el.settingsTheme) {
+      el.settingsTheme.value = themeName;
+    }
+
+    // Synchronize toolbar popover theme cards
     document.querySelectorAll('#popover-theme .theme-card-option').forEach(card => {
       if (card.getAttribute('data-theme-val') === themeName) {
         card.classList.add('active');
@@ -579,6 +582,12 @@ document.addEventListener('DOMContentLoaded', () => {
         card.classList.remove('active');
       }
     });
+
+    saveSettings();
+  }
+
+  function updateEditorTheme(themeName) {
+    updateTheme(themeName);
   }
 
   // --- TAB NAVIGATION ---
