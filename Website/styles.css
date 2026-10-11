@@ -92,11 +92,11 @@
 
 [data-theme="dracula"] {
   color-scheme: dark;
-  --bg-primary: #21222c;
+  --bg-primary: #1e1f29;
   --bg-secondary: #282a36;
   --bg-tertiary: #343746;
-  --bg-glass: rgba(40, 42, 54, 0.8);
-  --border-color: rgba(189, 147, 249, 0.25);
+  --bg-glass: rgba(40, 42, 54, 0.85);
+  --border-color: rgba(189, 147, 249, 0.3);
   --text-primary: #f8f8f2;
   --text-secondary: #9aa5ce;
   --accent-color: #bd93f9; /* Dracula Purple */
@@ -111,19 +111,19 @@
 
 [data-theme="monokai"] {
   color-scheme: dark;
-  --bg-primary: #1e1f1c;
-  --bg-secondary: #272822;
-  --bg-tertiary: #3e3d32;
-  --bg-glass: rgba(39, 40, 34, 0.8);
-  --border-color: rgba(230, 219, 116, 0.25);
-  --text-primary: #f8f8f2;
-  --text-secondary: #a0a092;
-  --accent-color: #a6e22e; /* Monokai Green */
-  --accent-rgb: 166, 226, 46;
-  --accent-hover: #e6db74; /* Monokai Yellow */
-  --glow-color: rgba(166, 226, 46, 0.3);
-  --scrollbar-thumb: #49483e;
-  --danger-color: #f92672;
+  --bg-primary: #19181a;
+  --bg-secondary: #221f22;
+  --bg-tertiary: #2d2a2e;
+  --bg-glass: rgba(34, 31, 34, 0.85);
+  --border-color: rgba(255, 216, 102, 0.3);
+  --text-primary: #fcfcfa;
+  --text-secondary: #939293;
+  --accent-color: #ffd866; /* Monokai Yellow */
+  --accent-rgb: 255, 216, 102;
+  --accent-hover: #a6e22e; /* Monokai Green */
+  --glow-color: rgba(255, 216, 102, 0.35);
+  --scrollbar-thumb: #403e41;
+  --danger-color: #ff6188;
   --success-color: #a6e22e;
   --panel-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
 }
@@ -133,10 +133,10 @@
   --bg-primary: #242933;
   --bg-secondary: #2e3440;
   --bg-tertiary: #3b4252;
-  --bg-glass: rgba(46, 52, 64, 0.8);
-  --border-color: rgba(136, 192, 208, 0.25);
+  --bg-glass: rgba(46, 52, 64, 0.85);
+  --border-color: rgba(136, 192, 208, 0.3);
   --text-primary: #eceff4;
-  --text-secondary: #c5cbd8;
+  --text-secondary: #9aa5b8;
   --accent-color: #88c0d0; /* Nord Ice Blue */
   --accent-rgb: 136, 192, 208;
   --accent-hover: #81a1c1;
@@ -149,17 +149,17 @@
 
 [data-theme="solarized"] {
   color-scheme: dark;
-  --bg-primary: #00212b;
+  --bg-primary: #001e26;
   --bg-secondary: #002b36;
   --bg-tertiary: #073642;
-  --bg-glass: rgba(0, 43, 54, 0.8);
-  --border-color: rgba(42, 161, 152, 0.25);
+  --bg-glass: rgba(0, 43, 54, 0.85);
+  --border-color: rgba(42, 161, 152, 0.3);
   --text-primary: #93a1a1;
-  --text-secondary: #839496;
+  --text-secondary: #657b83;
   --accent-color: #2aa198; /* Solarized Cyan */
   --accent-rgb: 42, 161, 152;
   --accent-hover: #b58900; /* Solarized Yellow */
-  --glow-color: rgba(42, 161, 152, 0.3);
+  --glow-color: rgba(42, 161, 152, 0.35);
   --scrollbar-thumb: #073642;
   --danger-color: #dc322f;
   --success-color: #859900;
@@ -168,13 +168,13 @@
 
 [data-theme="rose-pine"] {
   color-scheme: dark;
-  --bg-primary: #14121f;
+  --bg-primary: #12101c;
   --bg-secondary: #191724;
-  --bg-tertiary: #21202e;
-  --bg-glass: rgba(25, 23, 36, 0.8);
-  --border-color: rgba(235, 188, 186, 0.25);
+  --bg-tertiary: #211f30;
+  --bg-glass: rgba(25, 23, 36, 0.85);
+  --border-color: rgba(235, 188, 186, 0.3);
   --text-primary: #e0def4;
-  --text-secondary: #a39ec4;
+  --text-secondary: #908caa;
   --accent-color: #ebbcba; /* Rose Gold */
   --accent-rgb: 235, 188, 186;
   --accent-hover: #c4a7e7; /* Iris */
@@ -187,17 +187,17 @@
 
 [data-theme="sepia"] {
   color-scheme: light;
-  --bg-primary: #f4ecd8;
+  --bg-primary: #f2ebd9;
   --bg-secondary: #fbf0d9;
   --bg-tertiary: #ede1c6;
-  --bg-glass: rgba(251, 240, 217, 0.85);
-  --border-color: rgba(67, 52, 34, 0.15);
+  --bg-glass: rgba(251, 240, 217, 0.9);
+  --border-color: rgba(112, 66, 20, 0.2);
   --text-primary: #433422;
   --text-secondary: #7e6951;
-  --accent-color: #c2593f; /* Terracotta */
-  --accent-rgb: 194, 89, 63;
-  --accent-hover: #d46b52;
-  --glow-color: rgba(194, 89, 63, 0.2);
+  --accent-color: #b05a1e; /* Terracotta */
+  --accent-rgb: 176, 90, 30;
+  --accent-hover: #8f4512;
+  --glow-color: rgba(176, 90, 30, 0.25);
   --scrollbar-thumb: #dacab0;
   --danger-color: #c0392b;
   --success-color: #27ae60;
@@ -421,55 +421,55 @@ main {
 .text-editor-container[data-editor-theme="dracula"] {
   --editor-bg: #282a36;
   --editor-text: #f8f8f2;
-  --editor-gutter-bg: #21222c;
-  --editor-gutter-border: rgba(189, 147, 249, 0.2);
+  --editor-gutter-bg: #1e1f29;
+  --editor-gutter-border: rgba(189, 147, 249, 0.25);
   --editor-gutter-text: #9aa5ce;
   --editor-caret: #ff79c6;
 }
 
 .text-editor-container[data-editor-theme="monokai"] {
-  --editor-bg: #272822;
-  --editor-text: #f8f8f2;
-  --editor-gutter-bg: #1e1f1c;
-  --editor-gutter-border: rgba(230, 219, 116, 0.2);
-  --editor-gutter-text: #a0a092;
-  --editor-caret: #f92672;
+  --editor-bg: #221f22;
+  --editor-text: #fcfcfa;
+  --editor-gutter-bg: #19181a;
+  --editor-gutter-border: rgba(255, 216, 102, 0.25);
+  --editor-gutter-text: #939293;
+  --editor-caret: #ffd866;
 }
 
 .text-editor-container[data-editor-theme="nord"] {
   --editor-bg: #2e3440;
   --editor-text: #eceff4;
   --editor-gutter-bg: #242933;
-  --editor-gutter-border: rgba(136, 192, 208, 0.2);
-  --editor-gutter-text: #c5cbd8;
+  --editor-gutter-border: rgba(136, 192, 208, 0.25);
+  --editor-gutter-text: #9aa5b8;
   --editor-caret: #88c0d0;
 }
 
 .text-editor-container[data-editor-theme="solarized"] {
   --editor-bg: #002b36;
   --editor-text: #93a1a1;
-  --editor-gutter-bg: #00212b;
-  --editor-gutter-border: rgba(42, 161, 152, 0.2);
-  --editor-gutter-text: #839496;
-  --editor-caret: #b58900;
+  --editor-gutter-bg: #001e26;
+  --editor-gutter-border: rgba(42, 161, 152, 0.25);
+  --editor-gutter-text: #657b83;
+  --editor-caret: #2aa198;
 }
 
 .text-editor-container[data-editor-theme="rose-pine"] {
   --editor-bg: #191724;
   --editor-text: #e0def4;
-  --editor-gutter-bg: #14121f;
-  --editor-gutter-border: rgba(235, 188, 186, 0.2);
-  --editor-gutter-text: #a39ec4;
+  --editor-gutter-bg: #12101c;
+  --editor-gutter-border: rgba(235, 188, 186, 0.25);
+  --editor-gutter-text: #908caa;
   --editor-caret: #ebbcba;
 }
 
 .text-editor-container[data-editor-theme="sepia"] {
   --editor-bg: #fbf0d9;
   --editor-text: #433422;
-  --editor-gutter-bg: #f4ecd8;
-  --editor-gutter-border: rgba(67, 52, 34, 0.12);
+  --editor-gutter-bg: #f2ebd9;
+  --editor-gutter-border: rgba(112, 66, 20, 0.16);
   --editor-gutter-text: #7e6951;
-  --editor-caret: #c2593f;
+  --editor-caret: #b05a1e;
 }
 
 .text-editor-container {
@@ -2813,7 +2813,7 @@ body.zen-mode .editor-workspace {
 }
 
 .zen-exit-btn {
-  display: none;
+  display: none !important;
 }
 
 body.zen-mode .zen-exit-btn {

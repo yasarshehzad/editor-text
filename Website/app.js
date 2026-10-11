@@ -393,6 +393,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update theme selector position
     if (el.themeSelector) el.themeSelector.value = state.theme;
 
+    // Ensure zen exit button is hidden initially
+    if (el.btnZenExit) el.btnZenExit.style.setProperty('display', 'none', 'important');
+
     // Toggle Landing / Welcome page visibility
     toggleWelcomeVisibility();
     
@@ -1477,6 +1480,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function toggleZenMode() {
     const isZen = document.body.classList.toggle('zen-mode');
+    if (el.btnZenExit) {
+      el.btnZenExit.style.setProperty('display', isZen ? 'flex' : 'none', 'important');
+    }
     if (isZen) {
       if (el.btnToolbarZen) el.btnToolbarZen.classList.add('active');
       showToast('🧘 Zen Mode activated (Press Esc to exit)', 'info');
@@ -1489,6 +1495,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function exitZenMode() {
     if (document.body.classList.contains('zen-mode')) {
       document.body.classList.remove('zen-mode');
+      if (el.btnZenExit) {
+        el.btnZenExit.style.setProperty('display', 'none', 'important');
+      }
       if (el.btnToolbarZen) el.btnToolbarZen.classList.remove('active');
       showToast('Exited Zen Mode', 'info');
     }

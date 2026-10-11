@@ -56,7 +56,7 @@
   </script>
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="styles.css?v=1.0.11">
+  <link rel="stylesheet" href="styles.css?v=1.0.12">
 
   <!-- JSON-LD Structured Schema.org Data -->
   <script type="application/ld+json">
@@ -82,12 +82,6 @@
 
   <!-- Screen Reader Hidden SEO Heading -->
   <h1 class="sr-only">Editor Text - Free Online Text Editor and Photo Editor App</h1>
-
-  <!-- Zen Mode Floating Exit Button -->
-  <button class="zen-exit-btn" id="btn-zen-exit" aria-label="Exit Zen Writing Mode">
-    <span class="material-symbols-outlined">fullscreen_exit</span>
-    <span>Exit Zen Mode</span>
-  </button>
 
   <div id="app-container">
     
@@ -581,6 +575,12 @@
             </div>
           </div>
         </div>
+
+        <!-- Floating Exit Button for Zen Writing Mode (only displayed when body.zen-mode is active) -->
+        <button class="zen-exit-btn hidden" id="btn-zen-exit" aria-label="Exit Zen Writing Mode" style="display: none !important;">
+          <span class="material-symbols-outlined">fullscreen_exit</span>
+          <span>Exit Zen Mode</span>
+        </button>
       </section>
 
       <!-- HTML Preview Workspace -->
@@ -1176,6 +1176,6 @@
   </div>
 
   <!-- Custom Logic JS -->
-  <script src="app.js?v=1.0.11"></script>
+  <script src="app.js?v=1.0.12"></script>
 </body>
 </html>
