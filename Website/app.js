@@ -238,6 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnToolbarAbout: document.getElementById('btn-toolbar-about'),
     editorLayoutWrapper: document.getElementById('editor-layout-wrapper'),
     editorToolbar: document.getElementById('editor-toolbar'),
+    toolbarScrollHint: document.getElementById('toolbar-scroll-hint'),
     
     // Formatting Toolbar Buttons
     btnBold: document.getElementById('btn-bold'),
@@ -1300,6 +1301,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function updateToolbarScrollHint() {
+    if (!el.editorToolbar || !el.toolbarScrollHint) return;
+    const maxScroll = el.editorToolbar.scrollWidth - el.editorToolbar.clientWidth;
+    el.toolbarScrollHint.classList.toggle('is-scrolled-end', maxScroll <= 5 || el.editorToolbar.scrollLeft >= maxScroll - 15);
+  }
+
   function updateEditorModeDisplay(oldMode) {
     const newMode = state.editorMode;
     
@@ -1344,6 +1351,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateLineNumbers();
     runAnalytics();
     updatePreviews();
+    updateToolbarScrollHint();
   }
 
   function setEditorMode(newMode) {
@@ -3572,6 +3580,17 @@ document.addEventListener('DOMContentLoaded', () => {
       el.textarea.addEventListener('touchend', saveTextareaSelection);
       el.textarea.addEventListener('focus', saveTextareaSelection);
       el.textarea.addEventListener('input', saveTextareaSelection);
+    }
+
+    if (el.editorToolbar) {
+      el.editorToolbar.addEventListener('scroll', updateToolbarScrollHint, { passive: true });
+      window.addEventListener('resize', updateToolbarScrollHint, { passive: true });
+      if (el.toolbarScrollHint) {
+        el.toolbarScrollHint.addEventListener('click', () => {
+          el.editorToolbar.scrollBy({ left: 160, behavior: 'smooth' });
+        });
+      }
+      updateToolbarScrollHint();
     }
 
     // Monitor toolbar interaction state to prevent focus/selection resetting on mobile touch
