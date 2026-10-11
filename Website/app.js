@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tabMode: 'soft4', // 'hard', 'soft2', or 'soft4'
     whitespaceVisible: false,
     editorActive: false,
+    mobileStatsMode: 'compact',
     
     // Advanced Settings States
     editorMode: 'rich',
@@ -392,7 +393,17 @@ document.addEventListener('DOMContentLoaded', () => {
     btnB64Encode: document.getElementById('btn-b64-encode'),
     btnB64Decode: document.getElementById('btn-b64-decode'),
     btnJsonPrettify: document.getElementById('btn-json-prettify'),
-    btnJsonMinify: document.getElementById('btn-json-minify')
+    btnJsonMinify: document.getElementById('btn-json-minify'),
+
+    // Mobile Analytics Panel & Controls
+    mobileAnalyticsPanel: document.getElementById('mobile-analytics-panel'),
+    mobileStatsCompactView: document.getElementById('mobile-stats-compact-view'),
+    mobileStatsFullView: document.getElementById('mobile-stats-full-view'),
+    btnStatsModeFull: document.getElementById('btn-stats-mode-full'),
+    btnStatsModeCompact: document.getElementById('btn-stats-mode-compact'),
+    btnStatsModeHide: document.getElementById('btn-stats-mode-hide'),
+    btnRestoreMobileStats: document.getElementById('btn-restore-mobile-stats'),
+    statusBar: document.getElementById('editor-status-bar')
   };
 
   // --- INITIALIZATION ---
@@ -439,6 +450,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Sync Editor Mode Visual displays
     updateEditorModeDisplay(null);
+
+    // Initialize Mobile Stats Mode
+    setMobileStatsMode(state.mobileStatsMode || 'compact');
     
     // Register Service Worker for offline capability & PWA
     if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
@@ -536,6 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (safeStorage.getItem('et_print_margin')) state.printMargin = safeStorage.getItem('et_print_margin');
     if (safeStorage.getItem('et_tab_mode')) state.tabMode = safeStorage.getItem('et_tab_mode');
     if (safeStorage.getItem('et_whitespace')) state.whitespaceVisible = safeStorage.getItem('et_whitespace') === 'true';
+    if (safeStorage.getItem('et_mobile_stats_mode')) state.mobileStatsMode = safeStorage.getItem('et_mobile_stats_mode');
 
     // Load advanced settings
     if (safeStorage.getItem('et_editor_mode')) state.editorMode = safeStorage.getItem('et_editor_mode');
@@ -1482,6 +1497,35 @@ document.addEventListener('DOMContentLoaded', () => {
     setStatText('speaking-time', speakTimeText);
     setStatText('size', fileSizeText);
     setStatText('readability', readabilityText);
+  }
+
+  function setMobileStatsMode(mode) {
+    if (!['full', 'compact', 'hidden'].includes(mode)) mode = 'compact';
+    state.mobileStatsMode = mode;
+    safeStorage.setItem('et_mobile_stats_mode', mode);
+
+    if (el.mobileAnalyticsPanel) {
+      el.mobileAnalyticsPanel.setAttribute('data-mode', mode);
+      if (mode === 'hidden') {
+        el.mobileAnalyticsPanel.classList.add('hidden');
+        if (el.btnRestoreMobileStats) el.btnRestoreMobileStats.classList.remove('hidden');
+      } else {
+        el.mobileAnalyticsPanel.classList.remove('hidden');
+        if (el.btnRestoreMobileStats) el.btnRestoreMobileStats.classList.add('hidden');
+        
+        if (mode === 'compact') {
+          if (el.mobileStatsCompactView) el.mobileStatsCompactView.classList.remove('hidden');
+          if (el.mobileStatsFullView) el.mobileStatsFullView.classList.add('hidden');
+          if (el.btnStatsModeCompact) el.btnStatsModeCompact.classList.add('active');
+          if (el.btnStatsModeFull) el.btnStatsModeFull.classList.remove('active');
+        } else if (mode === 'full') {
+          if (el.mobileStatsCompactView) el.mobileStatsCompactView.classList.add('hidden');
+          if (el.mobileStatsFullView) el.mobileStatsFullView.classList.remove('hidden');
+          if (el.btnStatsModeFull) el.btnStatsModeFull.classList.add('active');
+          if (el.btnStatsModeCompact) el.btnStatsModeCompact.classList.remove('active');
+        }
+      }
+    }
   }
 
   // --- WHITESPACE VISUALIZER ---
@@ -3077,6 +3121,42 @@ document.addEventListener('DOMContentLoaded', () => {
         exitZenMode();
       });
     }
+
+    // Mobile Analytics Mode Switcher listeners
+    if (el.btnStatsModeFull) {
+      el.btnStatsModeFull.addEventListener('click', () => setMobileStatsMode('full'));
+    }
+    if (el.btnStatsModeCompact) {
+      el.btnStatsModeCompact.addEventListener('click', () => setMobileStatsMode('compact'));
+    }
+    if (el.btnStatsModeHide) {
+      el.btnStatsModeHide.addEventListener('click', () => {
+        setMobileStatsMode('hidden');
+        showToast('📊 Stats hidden. Tap the floating button or status bar to restore.', 'info');
+      });
+    }
+    if (el.btnRestoreMobileStats) {
+      el.btnRestoreMobileStats.addEventListener('click', () => {
+        setMobileStatsMode('compact');
+        showToast('📊 Stats restored (Compact View)', 'info');
+      });
+    }
+    if (el.statusBar) {
+      el.statusBar.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          if (state.mobileStatsMode === 'hidden') {
+            setMobileStatsMode('compact');
+            showToast('📊 Stats: Compact View', 'info');
+          } else if (state.mobileStatsMode === 'compact') {
+            setMobileStatsMode('full');
+            showToast('📊 Stats: Full View', 'info');
+          } else {
+            setMobileStatsMode('compact');
+            showToast('📊 Stats: Compact View', 'info');
+          }
+        }
+      });
+    }
     if (el.btnToolbarSettings) {
       el.btnToolbarSettings.addEventListener('click', () => {
         syncSettingsUI();
@@ -4246,6 +4326,9 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'Photo: Vivid Pop Preset', shortcut: '', action: () => { switchTab('photo'); applyPhotoPreset('vivid'); } },
     { name: 'Photo: Noir B&W Preset', shortcut: '', action: () => { switchTab('photo'); applyPhotoPreset('noir'); } },
     { name: 'Photo: Cyberpunk Preset', shortcut: '', action: () => { switchTab('photo'); applyPhotoPreset('cyberpunk'); } },
+    { name: 'Stats: Compact View (Mobile)', shortcut: '', action: () => { setMobileStatsMode('compact'); showToast('📊 Stats: Compact View', 'info'); } },
+    { name: 'Stats: Full Detailed View (Mobile)', shortcut: '', action: () => { setMobileStatsMode('full'); showToast('📊 Stats: Full View', 'info'); } },
+    { name: 'Stats: Hide / Show Stats (Mobile)', shortcut: '', action: () => { setMobileStatsMode(state.mobileStatsMode === 'hidden' ? 'compact' : 'hidden'); } },
     { name: 'Photo: Warm Sun Preset', shortcut: '', action: () => { switchTab('photo'); applyPhotoPreset('warm'); } },
     { name: 'Photo: Reset All Filters', shortcut: '', action: () => { switchTab('photo'); resetFilters(); } }
   ];

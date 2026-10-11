@@ -1,14 +1,14 @@
 /**
  * Editor Text (editortext.com)
- * Progressive Web App - Service Worker v1.0.14
+ * Progressive Web App - Service Worker v1.0.15
  */
 
-const CACHE_NAME = 'editor-text-v1.0.14';
+const CACHE_NAME = 'editor-text-v1.0.15';
 const STATIC_ASSETS = [
   '/',
   'index.html',
-  'styles.css?v=1.0.14',
-  'app.js?v=1.0.14',
+  'styles.css?v=1.0.15',
+  'app.js?v=1.0.15',
   'manifest.json',
   'images/logo.png',
   'about.html',

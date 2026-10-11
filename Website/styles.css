@@ -1018,7 +1018,8 @@ body.sidebar-collapsed .sidebar-toggle-fab span {
 /* Sidebar Toggle Mobile elements (hidden on desktop) */
 .mobile-sidebar-close,
 .mobile-sidebar-toggle,
-.mobile-analytics-container {
+.mobile-analytics-container,
+.mobile-stats-restore-btn {
   display: none;
 }
 
@@ -1050,8 +1051,9 @@ aside.sidebar.collapsed {
   header {
     flex-direction: column !important;
     align-items: stretch !important;
-    padding: 8px 12px !important;
+    padding: max(8px, env(safe-area-inset-top, 8px)) 12px 8px 12px !important;
     gap: 8px !important;
+    background: var(--bg-primary) !important;
   }
 
   .brand-section {
@@ -1383,14 +1385,131 @@ aside.sidebar.collapsed {
   .mobile-analytics-container {
     display: block !important;
     width: 100% !important;
-    margin: 16px 0 8px 0 !important;
-    padding: 12px 14px !important;
+    margin: 12px 0 8px 0 !important;
+    padding: 10px 14px !important;
     background: var(--bg-glass) !important;
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
     border: 1px solid var(--border-color) !important;
     border-radius: 12px !important;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
+    transition: all 0.25s ease !important;
+  }
+
+  .mobile-analytics-container.hidden {
+    display: none !important;
+  }
+
+  .mobile-analytics-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: 8px !important;
+    padding-bottom: 6px !important;
+    border-bottom: 1px solid var(--border-color) !important;
+  }
+
+  .mobile-analytics-title {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    color: var(--text-secondary) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  .mobile-analytics-title span.material-symbols-outlined {
+    font-size: 1rem !important;
+    color: var(--accent-color) !important;
+  }
+
+  .mobile-stats-mode-pills {
+    display: inline-flex !important;
+    align-items: center !important;
+    background: var(--bg-tertiary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 20px !important;
+    padding: 2px !important;
+    gap: 2px !important;
+  }
+
+  .stats-mode-pill {
+    background: transparent !important;
+    border: none !important;
+    color: var(--text-secondary) !important;
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    padding: 3px 8px !important;
+    border-radius: 16px !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .stats-mode-pill.active {
+    background: var(--accent-color) !important;
+    color: #ffffff !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  /* Compact View Row */
+  .mobile-stats-compact-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+    padding: 4px 0 !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  .mobile-stats-compact-row::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .compact-stat-item {
+    display: inline-flex !important;
+    align-items: baseline !important;
+    gap: 3px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .compact-val {
+    font-size: 0.92rem !important;
+    font-weight: 700 !important;
+    color: var(--accent-color) !important;
+    font-family: var(--font-mono) !important;
+  }
+
+  .compact-lbl {
+    font-size: 0.68rem !important;
+    color: var(--text-secondary) !important;
+    text-transform: uppercase !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.03em !important;
+  }
+
+  .compact-sep {
+    color: var(--border-color) !important;
+    font-size: 0.72rem !important;
+    flex-shrink: 0 !important;
+    user-select: none !important;
+  }
+
+  /* Full Detailed Grid View */
+  .mobile-stats-full-view {
+    display: block !important;
+  }
+
+  .mobile-stats-full-view.hidden,
+  .mobile-stats-compact-row.hidden {
+    display: none !important;
   }
 
   .mobile-analytics-container .stat-grid {
@@ -1445,7 +1564,53 @@ aside.sidebar.collapsed {
     margin-top: 0 !important;
   }
 
-  /* Enable scrollability on mobile globally */
+  /* Floating restore button when mobile stats are hidden */
+  .mobile-stats-restore-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    position: fixed !important;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 24px) !important;
+    right: 16px !important;
+    background: var(--bg-glass) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid var(--accent-color) !important;
+    color: var(--accent-color) !important;
+    padding: 8px 14px !important;
+    border-radius: 24px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    z-index: 100 !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .mobile-stats-restore-btn:active {
+    transform: scale(0.96) !important;
+  }
+
+  .mobile-stats-restore-btn.hidden {
+    display: none !important;
+  }
+
+  .mobile-stats-restore-btn span.material-symbols-outlined {
+    font-size: 1.1rem !important;
+  }
+
+  /* Editor status bar tap cursor */
+  .editor-status-bar {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    transition: transform 0.15s ease !important;
+  }
+  .editor-status-bar:active {
+    transform: scale(0.96) !important;
+  }
+
+  /* Enable scrollability on mobile globally with bottom clearance for mobile browser bar */
   html,
   body {
     overflow-y: auto !important;
@@ -1455,8 +1620,10 @@ aside.sidebar.collapsed {
   #app-container {
     height: auto !important;
     min-height: 100vh !important;
+    min-height: 100dvh !important;
     display: flex !important;
     flex-direction: column !important;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 84px) !important; /* Clears mobile browser address bar */
   }
 
   main {
@@ -1465,7 +1632,7 @@ aside.sidebar.collapsed {
     overflow: visible !important;
     display: flex !important;
     flex-direction: column !important;
-    grid-template-columns: 1fr !important; /* Force single column */
+    grid-template-columns: 1fr !important;
   }
 
   .editor-workspace {
@@ -1483,19 +1650,21 @@ aside.sidebar.collapsed {
   }
 
   .line-numbers {
-    height: 50vh !important;
+    height: 52vh !important;
     flex-shrink: 0 !important;
   }
 
   .textarea-wrapper {
     flex: 1 1 calc(100% - 55px) !important;
     min-width: 0 !important;
-    height: 50vh !important;
+    height: auto !important;
+    min-height: 52vh !important;
     overflow: hidden !important;
     border: 1px solid var(--border-color) !important;
     border-radius: 8px !important;
     display: flex !important;
     flex-direction: column !important;
+    position: relative !important;
   }
 
   .line-numbers.hidden ~ .textarea-wrapper {
@@ -1533,23 +1702,23 @@ aside.sidebar.collapsed {
   .editor-textarea,
   .editor-richarea {
     height: 100% !important;
-    min-height: unset !important;
+    min-height: 52vh !important;
     overflow-y: auto !important;
     overflow-x: auto !important;
-    white-space: pre-wrap !important; /* wrap text on mobile */
+    white-space: pre-wrap !important;
     -webkit-overflow-scrolling: touch !important;
-    padding: var(--space-2) !important;
+    padding: var(--space-2) var(--space-2) 42px var(--space-2) !important;
+    box-sizing: border-box !important;
   }
 
-  /* Make the formatting toolbar sticky at the top so it doesn't scroll out of view */
+  /* Make the formatting toolbar sticky at the safe-area top so it doesn't collide with status bar */
   .formatting-toolbar {
     position: sticky !important;
-    top: 0 !important;
+    top: env(safe-area-inset-top, 0px) !important;
     z-index: 999 !important;
-    background: var(--bg-glass) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
+    background: var(--bg-primary) !important;
     border-bottom: 1px solid var(--border-color) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
   }
 
   /* Reflow welcome screen to flow inline and scroll naturally on mobile */

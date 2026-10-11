@@ -12,7 +12,7 @@
   </script>
 
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   
   <!-- Primary SEO Metadata -->
   <title>Editor Text - Free App for Editing Text Files and Photos</title>
@@ -40,7 +40,7 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0a0a0f">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Editor Text">
 
   <!-- Google Fonts & Icons -->
@@ -62,7 +62,7 @@
   </script>
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="styles.css?v=1.0.14">
+  <link rel="stylesheet" href="styles.css?v=1.0.15">
 
   <!-- JSON-LD Structured Schema.org Data -->
   <script type="application/ld+json">
@@ -469,52 +469,111 @@
           </div>
 
           <!-- Mobile Analytics Panel (Only visible on mobile) -->
-          <div class="mobile-analytics-container">
-            <div class="stat-grid">
-              <div class="stat-card">
-                <div class="stat-value stat-words">0</div>
-                <div class="stat-label">Words</div>
+          <section class="mobile-analytics-container" id="mobile-analytics-panel" data-mode="compact" aria-label="Mobile Document Analytics">
+            <!-- Header with View Mode Switcher -->
+            <div class="mobile-analytics-header">
+              <div class="mobile-analytics-title">
+                <span class="material-symbols-outlined">analytics</span>
+                <span>Document Stats</span>
               </div>
-              <div class="stat-card">
-                <div class="stat-value stat-chars">0</div>
-                <div class="stat-label">Chars</div>
-              </div>
-              <div class="stat-card" title="Characters excluding spaces">
-                <div class="stat-value stat-chars-no-spaces">0</div>
-                <div class="stat-label">No Spaces</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-value stat-lines">1</div>
-                <div class="stat-label">Lines</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-value stat-paragraphs">0</div>
-                <div class="stat-label">Paragraphs</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-value stat-sentences">0</div>
-                <div class="stat-label">Sentences</div>
+              <div class="mobile-stats-mode-pills" role="group" aria-label="Stats display mode">
+                <button type="button" class="stats-mode-pill" id="btn-stats-mode-full" title="Detailed Grid View" aria-label="Full View">
+                  <span class="material-symbols-outlined" style="font-size: 0.95rem;">grid_view</span>
+                  <span>Full</span>
+                </button>
+                <button type="button" class="stats-mode-pill active" id="btn-stats-mode-compact" title="Compact Bar View" aria-label="Compact View">
+                  <span class="material-symbols-outlined" style="font-size: 0.95rem;">view_stream</span>
+                  <span>Compact</span>
+                </button>
+                <button type="button" class="stats-mode-pill btn-stats-hide" id="btn-stats-mode-hide" title="Hide Stats (Distraction-Free)" aria-label="Hide Stats">
+                  <span class="material-symbols-outlined" style="font-size: 0.95rem;">visibility_off</span>
+                  <span>Hide</span>
+                </button>
               </div>
             </div>
-            <div class="mobile-time-stats">
-              <div class="stat-card inline-stat">
-                <div class="stat-label">Reading Time</div>
-                <div class="stat-value stat-reading-time">&lt; 1 min</div>
+
+            <!-- Compact View (Single sleek row) -->
+            <div class="mobile-stats-compact-row" id="mobile-stats-compact-view">
+              <div class="compact-stat-item">
+                <span class="compact-val stat-words">0</span>
+                <span class="compact-lbl">words</span>
               </div>
-              <div class="stat-card inline-stat">
-                <div class="stat-label">Speaking Time</div>
-                <div class="stat-value stat-speaking-time">&lt; 1 min</div>
+              <span class="compact-sep" aria-hidden="true">&bull;</span>
+              <div class="compact-stat-item">
+                <span class="compact-val stat-chars">0</span>
+                <span class="compact-lbl">chars</span>
               </div>
-              <div class="stat-card inline-stat">
-                <div class="stat-label">File Size</div>
-                <div class="stat-value stat-size">0 B</div>
+              <span class="compact-sep" aria-hidden="true">&bull;</span>
+              <div class="compact-stat-item">
+                <span class="compact-val stat-lines">1</span>
+                <span class="compact-lbl">lines</span>
               </div>
-              <div class="stat-card inline-stat">
-                <div class="stat-label">Readability</div>
-                <div class="stat-value stat-readability">Standard</div>
+              <span class="compact-sep" aria-hidden="true">&bull;</span>
+              <div class="compact-stat-item">
+                <span class="compact-val stat-reading-time">&lt; 1 min</span>
+                <span class="compact-lbl">read</span>
+              </div>
+              <span class="compact-sep" aria-hidden="true">&bull;</span>
+              <div class="compact-stat-item">
+                <span class="compact-val stat-size">0 B</span>
+                <span class="compact-lbl">size</span>
               </div>
             </div>
-          </div>
+
+            <!-- Full View (Detailed 10-card Grid) -->
+            <div class="mobile-stats-full-view hidden" id="mobile-stats-full-view">
+              <div class="stat-grid">
+                <div class="stat-card">
+                  <div class="stat-value stat-words">0</div>
+                  <div class="stat-label">Words</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-value stat-chars">0</div>
+                  <div class="stat-label">Chars</div>
+                </div>
+                <div class="stat-card" title="Characters excluding spaces">
+                  <div class="stat-value stat-chars-no-spaces">0</div>
+                  <div class="stat-label">No Spaces</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-value stat-lines">1</div>
+                  <div class="stat-label">Lines</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-value stat-paragraphs">0</div>
+                  <div class="stat-label">Paragraphs</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-value stat-sentences">0</div>
+                  <div class="stat-label">Sentences</div>
+                </div>
+              </div>
+              <div class="mobile-time-stats">
+                <div class="stat-card inline-stat">
+                  <div class="stat-label">Reading Time</div>
+                  <div class="stat-value stat-reading-time">&lt; 1 min</div>
+                </div>
+                <div class="stat-card inline-stat">
+                  <div class="stat-label">Speaking Time</div>
+                  <div class="stat-value stat-speaking-time">&lt; 1 min</div>
+                </div>
+                <div class="stat-card inline-stat">
+                  <div class="stat-label">File Size</div>
+                  <div class="stat-value stat-size">0 B</div>
+                </div>
+                <div class="stat-card inline-stat">
+                  <div class="stat-label">Readability</div>
+                  <div class="stat-value stat-readability">Standard</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Floating Restore Button (Only visible when stats are hidden on mobile) -->
+          <button type="button" class="mobile-stats-restore-btn hidden" id="btn-restore-mobile-stats" title="Show Document Stats" aria-label="Show Document Stats">
+            <span class="material-symbols-outlined">analytics</span>
+            <span>Stats</span>
+          </button>
           <div class="split-preview-wrapper hidden" id="split-preview-container">
             <div class="split-preview-header">
               <span class="preview-title-label">
@@ -1351,6 +1410,6 @@
   </div>
 
   <!-- Custom Logic JS -->
-  <script src="app.js?v=1.0.14"></script>
+  <script src="app.js?v=1.0.15"></script>
 </body>
 </html>
