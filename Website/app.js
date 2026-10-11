@@ -111,7 +111,24 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     },
     findSelectionIndex: 0,
-    isInteractingWithToolbar: false
+    isInteractingWithToolbar: false,
+
+    // File System Access & Multi-Draft State
+    activeFileHandle: null,
+    activeFileHandleName: null,
+    currentDraftId: null,
+    previewFormat: 'auto',
+    printSettings: {
+      source: 'raw',
+      paperSize: 'a4',
+      orientation: 'portrait',
+      margin: 'standard',
+      fontSize: '12pt',
+      includeHeader: true,
+      includeLineNumbers: false,
+      includeFooter: true,
+      preserveSyntax: true
+    }
   };
 
   // --- HISTORY ENGINE (UNDO/REDO) ---
@@ -183,8 +200,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Header controls
     filenameInput: document.getElementById('filename'),
     fileExtSpan: document.getElementById('file-extension'),
+    fileSyncBadge: document.getElementById('file-sync-badge'),
     btnNew: document.getElementById('btn-new'),
     btnOpen: document.getElementById('btn-open'),
+    btnRecents: document.getElementById('btn-recents'),
     btnFullscreenPreview: document.getElementById('btn-fullscreen-preview'),
     btnSave: document.getElementById('btn-save'),
     btnCopy: document.getElementById('btn-copy'),
@@ -193,6 +212,15 @@ document.addEventListener('DOMContentLoaded', () => {
     btnMobileSidebarTogglePhoto: document.getElementById('btn-mobile-sidebar-toggle-photo'),
     themeSelector: document.getElementById('theme-selector'),
     fileSelector: document.getElementById('file-selector'),
+    
+    // Resume Draft Banner
+    resumeDraftBanner: document.getElementById('resume-draft-banner'),
+    resumeDraftFilename: document.getElementById('resume-draft-filename'),
+    resumeDraftMeta: document.getElementById('resume-draft-meta'),
+    btnResumeDraft: document.getElementById('btn-resume-draft'),
+    btnViewRecentsBanner: document.getElementById('btn-view-recents-banner'),
+    btnDismissDraftBanner: document.getElementById('btn-dismiss-draft-banner'),
+    btnWelcomeRecents: document.getElementById('btn-welcome-recents'),
     
     // Google Auth Widget
 
@@ -363,12 +391,34 @@ document.addEventListener('DOMContentLoaded', () => {
     // Export & PWA Elements
     btnExportMenu: document.getElementById('btn-export-menu'),
     popoverExport: document.getElementById('popover-export'),
+    btnExportSaveAs: document.getElementById('btn-export-save-as'),
     btnExportTxt: document.getElementById('btn-export-txt'),
     btnExportMd: document.getElementById('btn-export-md'),
+    btnExportCsv: document.getElementById('btn-export-csv'),
     btnExportHtml: document.getElementById('btn-export-html'),
     btnExportDoc: document.getElementById('btn-export-doc'),
     btnExportPdf: document.getElementById('btn-export-pdf'),
     btnInstallPwa: document.getElementById('btn-install-pwa'),
+
+    // Recent Files Dialog
+    recentFilesDialog: document.getElementById('recent-files-dialog'),
+    btnCloseRecentFiles: document.getElementById('btn-close-recent-files'),
+    recentFilesList: document.getElementById('recent-files-list'),
+    recentFilesCount: document.getElementById('recent-files-count'),
+    btnClearRecentFiles: document.getElementById('btn-clear-recent-files'),
+
+    // Print & PDF Setup Dialog
+    printDialog: document.getElementById('print-dialog'),
+    btnClosePrintDialog: document.getElementById('btn-close-print-dialog'),
+    btnCancelPrint: document.getElementById('btn-cancel-print'),
+    btnExecutePrint: document.getElementById('btn-execute-print'),
+    printRenderContainer: document.getElementById('print-render-container'),
+    printPaperSize: document.getElementById('print-paper-size'),
+    printOptHeader: document.getElementById('print-opt-header'),
+    printOptLineNumbers: document.getElementById('print-opt-linenumbers'),
+    printOptFooter: document.getElementById('print-opt-footer'),
+    printOptSyntax: document.getElementById('print-opt-syntax'),
+    splitPreviewTitle: document.getElementById('split-preview-title'),
 
     // TTS & Diff Toolbar
     btnToolbarTts: document.getElementById('btn-toolbar-tts'),
@@ -461,6 +511,9 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    // Check for interrupted or saved drafts to resume
+    checkResumeDraftBanner();
+
     showToast('💡 Welcome to Editor Text!', 'success');
   }
 
@@ -532,6 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const cleanText = state.whitespaceVisible ? cleanWhitespaceDisplay(el.textarea.value) : el.textarea.value;
       safeStorage.setItem('et_text_content', cleanText);
     }
+    recordCurrentDraft();
   }
 
   function loadSettings() {
@@ -746,33 +800,103 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     splitPreviewDebounceTimer = setTimeout(() => {
       if (state.splitViewActive && state.activeTab === 'text') {
-        let htmlContent = el.textarea.value;
-        if (state.whitespaceVisible) {
-          htmlContent = cleanWhitespaceDisplay(htmlContent);
-        }
-        el.splitPreviewIframe.srcdoc = htmlContent;
+        updatePreviews(true);
       }
-    }, 800);
+    }, 400);
   }
 
-  function parseMarkdown(md) {
-    let html = md
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-      
-    // Parse headers
-    html = html.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
-    html = html.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
-    html = html.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
+  function convertTableRowsToHtml(tableLines) {
+    if (!tableLines || tableLines.length === 0) return '';
+    const parseCells = (rowStr) => {
+      return rowStr.slice(1, -1).split('|').map(c => c.trim());
+    };
+
+    const headerCells = parseCells(tableLines[0]);
+    let startIdx = 1;
+    if (tableLines.length > 1 && /^[|\s:-]+$/.test(tableLines[1])) {
+      startIdx = 2;
+    }
+
+    let rowsHtml = '';
+    for (let i = startIdx; i < tableLines.length; i++) {
+      const cells = parseCells(tableLines[i]);
+      rowsHtml += `<tr>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`;
+    }
+
+    return `
+      <div class="table-container" style="overflow-x: auto; margin: 16px 0;">
+        <table class="markdown-table" style="width: 100%; border-collapse: collapse;">
+          <thead><tr>${headerCells.map(c => `<th style="background: rgba(0,0,0,0.04); border: 1px solid #e5e7eb; padding: 8px 12px; font-weight: 600;">${c}</th>`).join('')}</tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function parseMarkdownBodyOnly(md) {
+    if (!md) return '';
+    let html = escapeHTML(md);
+
+    // Code blocks
+    html = html.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (m, lang, code) => {
+      return `<pre style="background: rgba(110,118,129,0.1); padding: 12px; border-radius: 6px; overflow-x: auto;"><code>${code}</code></pre>`;
+    });
+
+    // GFM Tables
+    const lines = html.split('\n');
+    const processedLines = [];
+    let inTable = false;
+    let tableRows = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line.startsWith('|') && line.endsWith('|')) {
+        inTable = true;
+        tableRows.push(line);
+      } else {
+        if (inTable) {
+          processedLines.push(convertTableRowsToHtml(tableRows));
+          tableRows = [];
+          inTable = false;
+        }
+        processedLines.push(lines[i]);
+      }
+    }
+    if (inTable) {
+      processedLines.push(convertTableRowsToHtml(tableRows));
+    }
+    html = processedLines.join('\n');
+
+    // Headers
+    html = html.replace(/^###### (.*?)$/gm, '<h6>$1</h6>');
+    html = html.replace(/^##### (.*?)$/gm, '<h5>$1</h5>');
     html = html.replace(/^#### (.*?)$/gm, '<h4>$1</h4>');
-    
-    // Parse bold, italic, strike
+    html = html.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
+
+    // Task lists
+    html = html.replace(/^- \[(x|X)\] (.*?)$/gm, '<li style="list-style: none;"><input type="checkbox" checked disabled> <span>$2</span></li>');
+    html = html.replace(/^- \[ \] (.*?)$/gm, '<li style="list-style: none;"><input type="checkbox" disabled> <span>$2</span></li>');
+
+    // Lists
+    html = html.replace(/^\* (.*?)$/gm, '<li>$1</li>');
+    html = html.replace(/^- (.*?)$/gm, '<li>$1</li>');
+    html = html.replace(/^\d+\. (.*?)$/gm, '<li>$1</li>');
+
+    // Bold, italic, strike
     html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
     html = html.replace(/~~(.*?)~~/g, '<del>$1</del>');
-    
-    // Parse links: [text](url) - sanitized against javascript: and unsafe protocols
+    html = html.replace(/`(.*?)`/g, '<code style="background: rgba(110,118,129,0.2); padding: 2px 5px; border-radius: 4px;">$1</code>');
+
+    // Horizontal rule
+    html = html.replace(/^---$/gm, '<hr>');
+
+    // Blockquotes
+    html = html.replace(/^> (.*?)$/gm, '<blockquote style="border-left: 4px solid #0d9488; margin: 8px 0; padding-left: 12px; color: #6b7280;">$1</blockquote>');
+
+    // Links
     html = html.replace(/\[(.*?)\]\((.*?)\)/g, (match, text, url) => {
       const cleanUrl = url.trim();
       if (/^(https?:|mailto:|tel:|#|\/)/i.test(cleanUrl)) {
@@ -780,32 +904,24 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       return `<span>${text}</span>`;
     });
-    
-    // Parse code block: ```javascript ... ```
-    html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-    // Inline code: `code`
-    html = html.replace(/`(.*?)`/g, '<code>$1</code>');
-    
-    // Parse horizontal rule: ---
-    html = html.replace(/^---$/gm, '<hr>');
-    
-    // Parse blockquotes: > quote
-    html = html.replace(/^> (.*?)$/gm, '<blockquote>$1</blockquote>');
-    
-    // Parse list items
-    html = html.replace(/^\* (.*?)$/gm, '<li>$1</li>');
-    html = html.replace(/^- (.*?)$/gm, '<li>$1</li>');
-    html = html.replace(/^\d+\. (.*?)$/gm, '<li>$1</li>');
-    
-    // Wrap other lines in paragraphs
+
+    // Wrap paragraphs
     html = html.split('\n').map(line => {
-      if (line.trim() === '') return '';
-      if (line.startsWith('<h') || line.startsWith('<li') || line.startsWith('<pre') || line.startsWith('<code') || line.startsWith('<hr') || line.startsWith('<blockquote') || line.startsWith('</')) {
+      const trimmed = line.trim();
+      if (trimmed === '') return '';
+      if (trimmed.startsWith('<h') || trimmed.startsWith('<li') || trimmed.startsWith('<pre') || 
+          trimmed.startsWith('<code') || trimmed.startsWith('<hr') || trimmed.startsWith('<blockquote') || 
+          trimmed.startsWith('<table') || trimmed.startsWith('<div') || trimmed.startsWith('</')) {
         return line;
       }
       return `<p>${line}</p>`;
     }).join('\n');
-    
+
+    return html;
+  }
+
+  function parseMarkdown(md) {
+    const bodyHtml = parseMarkdownBodyOnly(md);
     return `
       <!DOCTYPE html>
       <html>
@@ -815,64 +931,135 @@ document.addEventListener('DOMContentLoaded', () => {
           body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             line-height: 1.6;
-            color: var(--text-primary, #1f2937);
+            color: #1f2937;
             padding: 16px;
             margin: 0;
-            background-color: var(--bg-primary, #ffffff);
+            background-color: #ffffff;
           }
           @media (prefers-color-scheme: dark) {
             body {
               color: #f3f4f6;
               background-color: #0d0a16;
             }
+            th { background: #1f2937 !important; border-color: #374151 !important; }
+            td { border-color: #374151 !important; }
+            hr { background-color: #374151 !important; }
+            h1 { border-color: #374151 !important; }
           }
-          h1, h2, h3, h4 {
+          h1, h2, h3, h4, h5, h6 {
             margin-top: 24px;
             margin-bottom: 16px;
             font-weight: 600;
             line-height: 1.25;
           }
           h1 { border-bottom: 1px solid #e5e7eb; padding-bottom: 0.3em; }
-          a { color: #06b6d4; text-decoration: none; }
+          a { color: #0d9488; text-decoration: none; }
           a:hover { text-decoration: underline; }
-          code {
-            padding: 0.2em 0.4em;
-            margin: 0;
-            font-size: 85%;
-            background-color: rgba(110, 118, 129, 0.2);
-            border-radius: 6px;
-            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
-          }
-          pre {
-            padding: 16px;
-            overflow: auto;
-            font-size: 85%;
-            line-height: 1.45;
-            background-color: rgba(110, 118, 129, 0.1);
-            border-radius: 6px;
-          }
-          pre code {
-            padding: 0;
-            background-color: transparent;
-            font-size: 100%;
-          }
-          blockquote {
-            padding: 0 1em;
-            color: #6b7280;
-            border-left: .25em solid #e5e7eb;
-            margin: 0 0 16px 0;
-          }
-          hr {
-            height: .25em;
-            padding: 0;
-            margin: 24px 0;
-            background-color: #e5e7eb;
-            border: 0;
-          }
+          table td { padding: 6px 12px; border: 1px solid #e5e7eb; }
+          table tr:nth-child(even) td { background: rgba(0,0,0,0.02); }
+          hr { height: 1px; border: 0; background-color: #e5e7eb; margin: 24px 0; }
         </style>
       </head>
       <body>
-        \${html}
+        ${bodyHtml}
+      </body>
+      </html>
+    `;
+  }
+
+  function parseCsvTableOnly(csvText) {
+    if (!csvText || csvText.trim().length === 0) {
+      return '<p style="color:#6b7280; font-style:italic;">Empty CSV or TSV data.</p>';
+    }
+    const firstLine = csvText.split('\n')[0] || '';
+    const delimiter = (firstLine.split('\t').length > firstLine.split(',').length) ? '\t' : ',';
+    const rows = [];
+    const lines = csvText.split(/\r?\n/);
+    
+    for (let line of lines) {
+      if (line.trim().length === 0) continue;
+      const row = [];
+      let inQuotes = false;
+      let currentVal = '';
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+          if (inQuotes && line[i + 1] === '"') {
+            currentVal += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === delimiter && !inQuotes) {
+          row.push(currentVal.trim());
+          currentVal = '';
+        } else {
+          currentVal += char;
+        }
+      }
+      row.push(currentVal.trim());
+      rows.push(row);
+    }
+
+    if (rows.length === 0) return '<p>No data found.</p>';
+    const header = rows[0];
+    const dataRows = rows.slice(1);
+
+    return `
+      <div style="overflow-x: auto; margin: 12px 0;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+          <thead>
+            <tr>
+              <th style="padding: 6px 10px; background: rgba(0,0,0,0.04); border: 1px solid #e5e7eb; width: 36px; text-align: center; color: #9ca3af;">#</th>
+              ${header.map(col => `<th style="padding: 6px 12px; background: rgba(0,0,0,0.04); border: 1px solid #e5e7eb; font-weight: 600;">${escapeHTML(col)}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${dataRows.map((r, idx) => `
+              <tr>
+                <td style="padding: 6px 10px; border: 1px solid #e5e7eb; text-align: center; color: #9ca3af;">${idx + 1}</td>
+                ${r.map(cell => `<td style="padding: 6px 12px; border: 1px solid #e5e7eb;">${escapeHTML(cell)}</td>`).join('')}
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function parseCsvToHtml(csvText) {
+    const tableHtml = parseCsvTableOnly(csvText);
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 16px;
+            color: #1f2937;
+            background: #ffffff;
+            font-size: 13px;
+          }
+          @media (prefers-color-scheme: dark) {
+            body { background: #0d0a16; color: #f3f4f6; }
+            th { background: #1f2937 !important; border-color: #374151 !important; }
+            td { border-color: #374151 !important; }
+            tr:nth-child(even) td { background: rgba(255,255,255,0.02) !important; }
+          }
+          tr:nth-child(even) td { background: #fdfdfd; }
+          tr:hover td { background: rgba(13, 148, 136, 0.08); }
+        </style>
+      </head>
+      <body>
+        <div style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: #6b7280;">
+          <span><strong>Tabular CSV / TSV View</strong></span>
+          <span style="background: #0d9488; color: #fff; padding: 2px 8px; border-radius: 12px; font-weight: 600;">Data Table</span>
+        </div>
+        ${tableHtml}
       </body>
       </html>
     `;
@@ -880,20 +1067,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updatePreviews(immediate = false) {
     let rawContent = el.textarea.value;
-    
-    // Clean display markers before rendering to frames
     if (state.whitespaceVisible) {
       rawContent = cleanWhitespaceDisplay(rawContent);
     }
     
     let htmlContent = '';
-    
-    if (state.editorMode === 'html') {
-      htmlContent = rawContent;
-    } else if (state.editorMode === 'markdown') {
+    const format = state.previewFormat || 'auto';
+
+    const isMarkdown = format === 'markdown' || (format === 'auto' && (state.editorMode === 'markdown' || state.extension === '.md'));
+    const isCsv = format === 'csv' || (format === 'auto' && (state.extension === '.csv' || state.extension === '.tsv'));
+    const isHtml = format === 'html' || (format === 'auto' && (state.editorMode === 'html' || state.extension === '.html'));
+    const isRaw = format === 'raw';
+
+    // Update Split Preview header label
+    if (el.splitPreviewTitle) {
+      let formatName = 'Live Preview';
+      if (isMarkdown) formatName = 'Markdown Preview';
+      else if (isCsv) formatName = 'CSV Table Preview';
+      else if (isHtml) formatName = 'HTML Preview';
+      else if (isRaw) formatName = 'Raw Text Preview';
+      el.splitPreviewTitle.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle; margin-right: 4px;">visibility</span>${formatName}`;
+    }
+
+    if (isMarkdown) {
       htmlContent = parseMarkdown(rawContent);
+    } else if (isCsv) {
+      htmlContent = parseCsvToHtml(rawContent);
+    } else if (isHtml) {
+      htmlContent = rawContent;
     } else {
-      // For all other code modes or plain text, render as preformatted text
       const escaped = escapeHTML(rawContent);
       htmlContent = `
         <!DOCTYPE html>
@@ -913,14 +1115,11 @@ document.addEventListener('DOMContentLoaded', () => {
               word-break: break-all;
             }
             @media (prefers-color-scheme: dark) {
-              body {
-                color: #f3f4f6;
-                background-color: #0d0a16;
-              }
+              body { color: #f3f4f6; background-color: #0d0a16; }
             }
           </style>
         </head>
-        <body>\${escaped}</body>
+        <body>${escaped}</body>
         </html>
       `;
     }
@@ -1885,13 +2084,340 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function openFile() {
+  // --- FORMAT & DRAFT UTILITIES ---
+  function formatBytes(bytes) {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  function formatTimeAgo(timestamp) {
+    if (!timestamp) return 'recently';
+    const diff = Math.max(0, Date.now() - timestamp);
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return 'just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  }
+
+  // --- RECENT DRAFTS & AUTOSAVE RECOVERY ENGINE ---
+  function getRecentDocs() {
+    try {
+      const raw = safeStorage.getItem('et_recent_docs');
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveRecentDocs(docs) {
+    try {
+      safeStorage.setItem('et_recent_docs', JSON.stringify(docs.slice(0, 15)));
+    } catch (e) {
+      console.warn('Failed to save recent docs:', e);
+    }
+  }
+
+  function recordCurrentDraft(explicitContent = null) {
+    let content = explicitContent !== null ? explicitContent : el.textarea.value;
+    if (state.whitespaceVisible) {
+      content = cleanWhitespaceDisplay(content);
+    }
+    if (!content || content.trim().length === 0) return;
+
+    const words = content.trim().split(/\s+/).filter(Boolean).length;
+    const chars = content.length;
+    const docId = state.currentDraftId || (Date.now().toString() + '_' + Math.random().toString(36).substr(2, 5));
+    state.currentDraftId = docId;
+
+    const docRecord = {
+      id: docId,
+      name: state.filename || 'untitled',
+      ext: state.extension || '.txt',
+      content: content,
+      mode: state.editorMode,
+      words: words,
+      chars: chars,
+      sizeFormatted: formatBytes(new Blob([content]).size),
+      timestamp: Date.now()
+    };
+
+    let docs = getRecentDocs().filter(d => d.id !== docId && !(d.name === docRecord.name && d.content === docRecord.content));
+    docs.unshift(docRecord);
+    saveRecentDocs(docs);
+  }
+
+  function checkResumeDraftBanner() {
+    if (!el.resumeDraftBanner) return;
+    try {
+      if (sessionStorage.getItem('et_banner_dismissed') === 'true') {
+        el.resumeDraftBanner.classList.add('hidden');
+        return;
+      }
+    } catch (e) {}
+
+    const docs = getRecentDocs();
+    if (docs.length > 0 && docs[0].content && docs[0].content.trim().length > 5) {
+      const draft = docs[0];
+      const timeAgo = formatTimeAgo(draft.timestamp);
+      if (el.resumeDraftFilename) el.resumeDraftFilename.textContent = `${draft.name}${draft.ext}`;
+      if (el.resumeDraftMeta) el.resumeDraftMeta.textContent = `• ${draft.words.toLocaleString()} words • edited ${timeAgo}`;
+      el.resumeDraftBanner.classList.remove('hidden');
+    } else {
+      el.resumeDraftBanner.classList.add('hidden');
+    }
+  }
+
+  function restoreDraft(draft) {
+    if (!draft) return;
+    state.currentDraftId = draft.id;
+    state.filename = draft.name;
+    state.extension = draft.ext || '.txt';
+    el.filenameInput.value = draft.name;
+    el.fileExtSpan.textContent = draft.ext || '.txt';
+
+    if (draft.mode) setEditorMode(draft.mode);
+    el.textarea.value = draft.content;
+    if (state.editorMode === 'rich' && el.richarea) {
+      el.richarea.innerHTML = draft.ext === '.html' ? draft.content : escapeHTML(draft.content).replace(/\n/g, '<br>');
+    }
+
+    state.editorActive = true;
+    switchTab('text');
+    updateLineNumbers();
+    runAnalytics();
+    updatePreviews(true);
+    toggleWelcomeVisibility();
+    saveSettings();
+
+    if (el.resumeDraftBanner) el.resumeDraftBanner.classList.add('hidden');
+    showToast(`🔄 Restored draft: ${draft.name}${draft.ext}`, 'success');
+  }
+
+  function openRecentFilesModal() {
+    if (!el.recentFilesDialog) return;
+    renderRecentFilesList();
+    if (typeof el.recentFilesDialog.showModal === 'function') {
+      el.recentFilesDialog.showModal();
+    } else {
+      el.recentFilesDialog.classList.remove('hidden');
+    }
+  }
+
+  function closeRecentFilesModal() {
+    if (!el.recentFilesDialog) return;
+    if (typeof el.recentFilesDialog.close === 'function') {
+      el.recentFilesDialog.close();
+    } else {
+      el.recentFilesDialog.classList.add('hidden');
+    }
+  }
+
+  function renderRecentFilesList() {
+    if (!el.recentFilesList) return;
+    const docs = getRecentDocs();
+    if (el.recentFilesCount) {
+      el.recentFilesCount.textContent = `${docs.length} saved ${docs.length === 1 ? 'draft' : 'drafts'}`;
+    }
+    el.recentFilesList.innerHTML = '';
+
+    if (docs.length === 0) {
+      el.recentFilesList.innerHTML = `
+        <div class="recent-empty-state">
+          <span class="material-symbols-outlined recent-empty-icon">history_toggle_off</span>
+          <p style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">No recent drafts yet</p>
+          <p style="font-size: 0.85rem; color: var(--text-secondary);">Start writing or open a file and your drafts will be securely saved here.</p>
+        </div>
+      `;
+      return;
+    }
+
+    docs.forEach(doc => {
+      const item = document.createElement('div');
+      item.className = 'recent-file-item';
+      const icon = doc.ext === '.md' ? 'edit_note' : (doc.ext === '.csv' || doc.ext === '.tsv' ? 'table_chart' : (doc.ext === '.html' ? 'code' : 'description'));
+      
+      item.innerHTML = `
+        <div class="recent-file-info" role="button" tabindex="0" title="Click to load draft">
+          <span class="material-symbols-outlined recent-file-icon">${icon}</span>
+          <div class="recent-file-details">
+            <div class="recent-file-name">${escapeHTML(doc.name)}${escapeHTML(doc.ext)}</div>
+            <div class="recent-file-sub">
+              <span>${doc.words.toLocaleString()} words</span>
+              <span>&bull;</span>
+              <span>${doc.sizeFormatted}</span>
+              <span>&bull;</span>
+              <span>${formatTimeAgo(doc.timestamp)}</span>
+            </div>
+          </div>
+        </div>
+        <div class="recent-file-actions">
+          <button class="btn btn-sm btn-primary btn-load-recent" title="Open this draft">Open</button>
+          <button class="btn btn-sm btn-download-recent" title="Download file"><span class="material-symbols-outlined" style="font-size: 0.95rem;">download</span></button>
+          <button class="btn btn-sm btn-danger btn-delete-recent" title="Remove from history"><span class="material-symbols-outlined" style="font-size: 0.95rem;">delete</span></button>
+        </div>
+      `;
+
+      item.querySelector('.recent-file-info').addEventListener('click', () => {
+        restoreDraft(doc);
+        closeRecentFilesModal();
+      });
+
+      item.querySelector('.btn-load-recent').addEventListener('click', () => {
+        restoreDraft(doc);
+        closeRecentFilesModal();
+      });
+
+      item.querySelector('.btn-download-recent').addEventListener('click', () => {
+        triggerDownload(doc.content, `${doc.name}${doc.ext}`, 'text/plain;charset=utf-8');
+        showToast(`💾 Downloaded ${doc.name}${doc.ext}`, 'success');
+      });
+
+      item.querySelector('.btn-delete-recent').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const updated = getRecentDocs().filter(d => d.id !== doc.id);
+        saveRecentDocs(updated);
+        renderRecentFilesList();
+        checkResumeDraftBanner();
+        showToast('🗑️ Removed draft from recents', 'info');
+      });
+
+      el.recentFilesList.appendChild(item);
+    });
+  }
+
+  // --- NATIVE FILE SYSTEM ACCESS API & SYNC ---
+  const supportsFileSystemAccess = ('showOpenFilePicker' in window && 'showSaveFilePicker' in window);
+
+  function updateSyncBadge(active) {
+    if (!el.fileSyncBadge) return;
+    if (active && state.activeFileHandle) {
+      el.fileSyncBadge.classList.remove('hidden');
+      el.fileSyncBadge.title = `Directly synchronized to: ${state.activeFileHandleName} (Ctrl+S saves in-place)`;
+      const saveLabel = document.getElementById('btn-save-label');
+      if (saveLabel) saveLabel.textContent = 'Sync';
+    } else {
+      el.fileSyncBadge.classList.add('hidden');
+      const saveLabel = document.getElementById('btn-save-label');
+      if (saveLabel) saveLabel.textContent = 'Save';
+    }
+  }
+
+  function loadDocumentIntoEditor(fileName, textVal) {
+    const nameParts = fileName.split('.');
+    const ext = nameParts.length > 1 ? '.' + nameParts.pop() : '.txt';
+    const baseName = nameParts.join('.');
+
+    state.filename = baseName;
+    state.extension = ext;
+    el.filenameInput.value = baseName;
+    el.fileExtSpan.textContent = ext;
+
+    const extToMode = {
+      '.html': 'html',
+      '.css': 'css',
+      '.js': 'javascript',
+      '.ts': 'typescript',
+      '.json': 'json',
+      '.py': 'python',
+      '.sql': 'sql',
+      '.cpp': 'cpp',
+      '.md': 'markdown'
+    };
+    const targetMode = extToMode[ext.toLowerCase()];
+    if (targetMode) {
+      setEditorMode(targetMode);
+    } else if (state.editorMode !== 'rich' && state.editorMode !== 'text') {
+      setEditorMode('text');
+    }
+
+    if (state.whitespaceVisible) {
+      textVal = convertToWhitespaceDisplay(textVal);
+    }
+    el.textarea.value = textVal;
+    if (state.editorMode === 'rich' && el.richarea) {
+      if (ext === '.html') {
+        el.richarea.innerHTML = textVal;
+      } else {
+        el.richarea.innerHTML = escapeHTML(textVal).replace(/\n/g, '<br>');
+      }
+    }
+
+    state.editorActive = true;
+    switchTab('text');
+    updateLineNumbers();
+    runAnalytics();
+    updatePreviews(true);
+    toggleWelcomeVisibility();
+
+    const cleanText = state.whitespaceVisible ? cleanWhitespaceDisplay(el.textarea.value) : el.textarea.value;
+    historyState.push(cleanText, el.textarea.selectionStart, el.textarea.selectionEnd);
+    recordCurrentDraft(cleanText);
+    saveSettings();
+  }
+
+  async function openFile() {
+    if (supportsFileSystemAccess) {
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          multiple: false,
+          types: [
+            {
+              description: 'Text, Code, Markdown & Data Files',
+              accept: {
+                'text/*': ['.txt', '.md', '.csv', '.tsv', '.html', '.css', '.js', '.ts', '.json', '.py', '.sql', '.cpp', '.xml'],
+                'image/*': ['.png', '.jpg', '.jpeg', '.webp']
+              }
+            }
+          ]
+        });
+        if (handle) {
+          const file = await handle.getFile();
+          if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+              state.photo.src = evt.target.result;
+              const nameParts = file.name.split('.');
+              state.extension = nameParts.length > 1 ? '.' + nameParts.pop() : '.png';
+              state.filename = nameParts.join('.');
+              el.filenameInput.value = state.filename;
+              switchTab('photo');
+              loadPhoto(evt.target.result);
+              saveSettings();
+              showToast(`🖼️ Loaded photo: ${file.name}`, 'success');
+            };
+            reader.readAsDataURL(file);
+            return;
+          }
+
+          state.activeFileHandle = handle;
+          state.activeFileHandleName = file.name;
+          updateSyncBadge(true);
+          const text = await file.text();
+          loadDocumentIntoEditor(file.name, text);
+          showToast(`📁 Opened ${file.name} (Direct Disk Sync Active)`, 'success');
+          return;
+        }
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        console.warn('Native picker aborted, falling back:', err);
+      }
+    }
     el.fileSelector.click();
   }
 
   function handleFileSelection(e) {
     const file = e.target.files[0];
     if (!file) return;
+
+    state.activeFileHandle = null;
+    state.activeFileHandleName = null;
+    updateSyncBadge(false);
 
     const nameParts = file.name.split('.');
     const ext = nameParts.length > 1 ? '.' + nameParts.pop() : '.txt';
@@ -1913,54 +2439,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       const reader = new FileReader();
       reader.onload = function(evt) {
-        let textVal = evt.target.result;
-        state.filename = baseName;
-        state.extension = ext;
-        
-        // Automatic mode switching based on file extension
-        const extToMode = {
-          '.html': 'html',
-          '.css': 'css',
-          '.js': 'javascript',
-          '.ts': 'typescript',
-          '.json': 'json',
-          '.py': 'python',
-          '.sql': 'sql',
-          '.cpp': 'cpp',
-          '.md': 'markdown'
-        };
-        const targetMode = extToMode[ext.toLowerCase()];
-        if (targetMode) {
-          setEditorMode(targetMode);
-        } else if (state.editorMode !== 'rich' && state.editorMode !== 'text') {
-          setEditorMode('text');
-        }
-        
-        el.filenameInput.value = baseName;
-        el.fileExtSpan.textContent = ext;
-        
-        if (state.whitespaceVisible) {
-          textVal = convertToWhitespaceDisplay(textVal);
-        }
-        el.textarea.value = textVal;
-        if (state.editorMode === 'rich') {
-          if (ext === '.html') {
-            el.richarea.innerHTML = textVal;
-          } else {
-            el.richarea.innerHTML = escapeHTML(textVal).replace(/\n/g, '<br>');
-          }
-        }
-        
-        state.editorActive = true;
-        switchTab('text');
-        updateLineNumbers();
-        runAnalytics();
-        updatePreviews();
-        toggleWelcomeVisibility();
-        
-        const cleanText = state.whitespaceVisible ? cleanWhitespaceDisplay(el.textarea.value) : el.textarea.value;
-        historyState.push(cleanText, el.textarea.selectionStart, el.textarea.selectionEnd);
-        saveSettings();
+        loadDocumentIntoEditor(file.name, evt.target.result);
         showToast(`📁 Loaded ${file.name}`, 'success');
       };
       reader.readAsText(file);
@@ -1968,32 +2447,89 @@ document.addEventListener('DOMContentLoaded', () => {
     el.fileSelector.value = '';
   }
 
-  function downloadFile() {
-    if (state.activeTab === 'text') {
-      let text = el.textarea.value;
-      if (state.editorMode === 'rich' && state.extension === '.html') {
-        text = el.richarea.innerHTML;
-      }
-      if (state.whitespaceVisible) {
-        text = cleanWhitespaceDisplay(text);
-      }
-      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = state.filename + state.extension;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast(`💾 Downloaded ${state.filename}${state.extension}`, 'success');
-    } else {
+  async function downloadFile(forceSaveAs = false) {
+    if (state.activeTab !== 'text') {
       if (!state.photo.src) {
         showToast('⚠️ No photo to save!', 'error');
         return;
       }
       exportPhoto();
+      return;
     }
+
+    let text = el.textarea.value;
+    if (state.editorMode === 'rich' && state.extension === '.html' && el.richarea) {
+      text = el.richarea.innerHTML;
+    }
+    if (state.whitespaceVisible) {
+      text = cleanWhitespaceDisplay(text);
+    }
+
+    // Direct in-place disk save if handle is active
+    if (!forceSaveAs && state.activeFileHandle && typeof state.activeFileHandle.createWritable === 'function') {
+      try {
+        const writable = await state.activeFileHandle.createWritable();
+        await writable.write(text);
+        await writable.close();
+        recordCurrentDraft(text);
+        showToast(`💾 Saved directly to disk: ${state.activeFileHandleName}`, 'success');
+        updateSyncBadge(true);
+        return;
+      } catch (err) {
+        console.warn('Failed in-place write, falling back:', err);
+      }
+    }
+
+    // Native showSaveFilePicker
+    if (supportsFileSystemAccess) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: state.filename + state.extension,
+          types: [
+            {
+              description: 'Text Document',
+              accept: { 'text/plain': [state.extension || '.txt'] }
+            }
+          ]
+        });
+        if (handle) {
+          const writable = await handle.createWritable();
+          await writable.write(text);
+          await writable.close();
+          const file = await handle.getFile();
+          state.activeFileHandle = handle;
+          state.activeFileHandleName = file.name;
+          
+          const nameParts = file.name.split('.');
+          state.extension = nameParts.length > 1 ? '.' + nameParts.pop() : '.txt';
+          state.filename = nameParts.join('.');
+          el.filenameInput.value = state.filename;
+          el.fileExtSpan.textContent = state.extension;
+          
+          updateSyncBadge(true);
+          recordCurrentDraft(text);
+          saveSettings();
+          showToast(`💾 Saved directly to disk: ${file.name}`, 'success');
+          return;
+        }
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        console.warn('Save file picker error, falling back:', err);
+      }
+    }
+
+    // Browser download fallback
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = state.filename + state.extension;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    recordCurrentDraft(text);
+    showToast(`💾 Downloaded ${state.filename}${state.extension}`, 'success');
   }
 
   function copyTextToClipboard() {
@@ -2008,6 +2544,121 @@ document.addEventListener('DOMContentLoaded', () => {
     navigator.clipboard.writeText(text)
       .then(() => showToast('📋 Content copied to clipboard!', 'success'))
       .catch(() => showToast('❌ Failed to copy to clipboard', 'error'));
+  }
+
+  // --- ADVANCED PRINT & PDF SETUP DIALOG ---
+  function openPrintSetupDialog() {
+    if (!el.printDialog) {
+      window.print();
+      return;
+    }
+    const isRenderable = state.editorMode === 'markdown' || state.editorMode === 'html' || state.extension === '.md' || state.extension === '.csv' || state.extension === '.tsv';
+    const sourcePills = document.querySelectorAll('#print-source-pills .print-pill');
+    sourcePills.forEach(p => {
+      const isRendered = p.dataset.source === 'rendered';
+      p.classList.toggle('active', isRenderable ? isRendered : !isRendered);
+    });
+    state.printSettings.source = isRenderable ? 'rendered' : 'raw';
+
+    if (typeof el.printDialog.showModal === 'function') {
+      el.printDialog.showModal();
+    } else {
+      el.printDialog.classList.remove('hidden');
+    }
+  }
+
+  function closePrintSetupDialog() {
+    if (!el.printDialog) return;
+    if (typeof el.printDialog.close === 'function') {
+      el.printDialog.close();
+    } else {
+      el.printDialog.classList.add('hidden');
+    }
+  }
+
+  function executeCustomPrint() {
+    closePrintSetupDialog();
+
+    const { source, paperSize, orientation, margin, fontSize, includeHeader, includeLineNumbers, includeFooter } = state.printSettings;
+    let rawText = el.textarea.value;
+    if (state.whitespaceVisible) rawText = cleanWhitespaceDisplay(rawText);
+
+    const marginMap = { compact: '10mm', standard: '20mm', wide: '30mm' };
+    const marginVal = marginMap[margin] || '20mm';
+
+    let printStyleTag = document.getElementById('dynamic-print-style');
+    if (!printStyleTag) {
+      printStyleTag = document.createElement('style');
+      printStyleTag.id = 'dynamic-print-style';
+      document.head.appendChild(printStyleTag);
+    }
+    printStyleTag.textContent = `@page { size: ${paperSize} ${orientation}; margin: ${marginVal}; }`;
+
+    let bodyHtml = '';
+    const timestampStr = new Date().toLocaleString();
+    const docTitle = `${state.filename}${state.extension}`;
+
+    const headerHtml = includeHeader ? `
+      <div class="print-header">
+        <span><strong>${escapeHTML(docTitle)}</strong></span>
+        <span>${timestampStr}</span>
+      </div>
+    ` : '';
+
+    const footerHtml = includeFooter ? `
+      <div class="print-footer">
+        <span>Document created with Editor Text &bull; editortext.com</span>
+        <span>Page &num;</span>
+      </div>
+    ` : '';
+
+    if (source === 'rendered') {
+      if (state.editorMode === 'markdown' || state.extension === '.md') {
+        bodyHtml = parseMarkdownBodyOnly(rawText);
+      } else if (state.extension === '.csv' || state.extension === '.tsv') {
+        bodyHtml = parseCsvTableOnly(rawText);
+      } else if (state.editorMode === 'html' || state.extension === '.html') {
+        bodyHtml = rawText;
+      } else {
+        bodyHtml = `<pre style="white-space: pre-wrap; font-family: monospace;">${escapeHTML(rawText)}</pre>`;
+      }
+    } else {
+      const lines = rawText.split('\n');
+      if (includeLineNumbers) {
+        bodyHtml = `
+          <div style="font-family: ui-monospace, monospace; font-size: ${fontSize}; line-height: 1.5;">
+            ${lines.map((l, i) => `
+              <div style="display: flex;">
+                <span style="width: 48px; color: #9ca3af; text-align: right; margin-right: 16px; user-select: none;">${i + 1}</span>
+                <span style="flex: 1; white-space: pre-wrap; word-break: break-all;">${escapeHTML(l) || '&nbsp;'}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else {
+        bodyHtml = `<pre style="white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: ${fontSize}; line-height: 1.5; margin: 0;">${escapeHTML(rawText)}</pre>`;
+      }
+    }
+
+    el.printRenderContainer.innerHTML = `
+      <div class="print-page">
+        ${headerHtml}
+        <div class="print-content" style="font-size: ${fontSize};">
+          ${bodyHtml}
+        </div>
+        ${footerHtml}
+      </div>
+    `;
+
+    document.body.classList.add('printing-custom');
+    
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => {
+        document.body.classList.remove('printing-custom');
+        el.printRenderContainer.innerHTML = '';
+      }, 1000);
+    }, 100);
   }
 
   // --- EXPORT DOCUMENT SUITE ---
@@ -2046,12 +2697,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const htmlContent = state.editorMode === 'rich' ? (el.richarea.innerHTML || '') : `<pre>${escapeHtml(textContent)}</pre>`;
     const rawText = state.editorMode === 'rich' ? (el.richarea.innerText || el.richarea.textContent || '') : textContent;
 
-    if (format === 'txt') {
+    if (format === 'save-as') {
+      downloadFile(true);
+    } else if (format === 'txt') {
       triggerDownload(rawText, `${baseName}.txt`, 'text/plain;charset=utf-8');
       showToast(`💾 Exported ${baseName}.txt`, 'success');
     } else if (format === 'md') {
       triggerDownload(rawText, `${baseName}.md`, 'text/markdown;charset=utf-8');
       showToast(`📝 Exported ${baseName}.md`, 'success');
+    } else if (format === 'csv') {
+      triggerDownload(rawText, `${baseName}.csv`, 'text/csv;charset=utf-8');
+      showToast(`📊 Exported ${baseName}.csv`, 'success');
     } else if (format === 'html') {
       const fullHtml = `<!DOCTYPE html>
 <html lang="en">
@@ -2092,7 +2748,7 @@ document.addEventListener('DOMContentLoaded', () => {
       triggerDownload(docHtml, `${baseName}.doc`, 'application/msword;charset=utf-8');
       showToast(`📄 Exported ${baseName}.doc (Word)`, 'success');
     } else if (format === 'pdf') {
-      window.print();
+      openPrintSetupDialog();
     }
   }
 
@@ -3203,7 +3859,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     el.btnToolbarPrint.addEventListener('click', () => {
-      window.print();
+      openPrintSetupDialog();
     });
 
 
@@ -3277,9 +3933,102 @@ document.addEventListener('DOMContentLoaded', () => {
     // Header buttons
     el.btnNew.addEventListener('click', createNewFile);
     el.btnOpen.addEventListener('click', openFile);
-    el.btnSave.addEventListener('click', downloadFile);
+    el.btnSave.addEventListener('click', () => downloadFile(false));
     el.btnCopy.addEventListener('click', copyTextToClipboard);
     el.fileSelector.addEventListener('change', handleFileSelection);
+
+    // Recent Files & Draft Recovery Listeners
+    if (el.btnRecents) el.btnRecents.addEventListener('click', openRecentFilesModal);
+    if (el.btnWelcomeRecents) el.btnWelcomeRecents.addEventListener('click', openRecentFilesModal);
+    if (el.btnViewRecentsBanner) el.btnViewRecentsBanner.addEventListener('click', openRecentFilesModal);
+    if (el.btnResumeDraft) el.btnResumeDraft.addEventListener('click', () => {
+      const docs = getRecentDocs();
+      if (docs.length > 0) restoreDraft(docs[0]);
+    });
+    if (el.btnDismissDraftBanner) el.btnDismissDraftBanner.addEventListener('click', () => {
+      if (el.resumeDraftBanner) el.resumeDraftBanner.classList.add('hidden');
+      try { sessionStorage.setItem('et_banner_dismissed', 'true'); } catch (e) {}
+    });
+    if (el.btnCloseRecentFiles) el.btnCloseRecentFiles.addEventListener('click', closeRecentFilesModal);
+    if (el.btnClearRecentFiles) el.btnClearRecentFiles.addEventListener('click', () => {
+      if (confirm('Clear all recent files and saved drafts from this browser?')) {
+        saveRecentDocs([]);
+        renderRecentFilesList();
+        checkResumeDraftBanner();
+        showToast('🗑️ Cleared all recent drafts', 'info');
+      }
+    });
+
+    // Advanced Print & PDF Dialog Listeners
+    if (el.btnClosePrintDialog) el.btnClosePrintDialog.addEventListener('click', closePrintSetupDialog);
+    if (el.btnCancelPrint) el.btnCancelPrint.addEventListener('click', closePrintSetupDialog);
+    if (el.btnExecutePrint) el.btnExecutePrint.addEventListener('click', executeCustomPrint);
+    if (el.printPaperSize) {
+      el.printPaperSize.addEventListener('change', (e) => {
+        state.printSettings.paperSize = e.target.value;
+      });
+    }
+    if (el.printOptHeader) {
+      el.printOptHeader.addEventListener('change', (e) => {
+        state.printSettings.includeHeader = e.target.checked;
+      });
+    }
+    if (el.printOptLineNumbers) {
+      el.printOptLineNumbers.addEventListener('change', (e) => {
+        state.printSettings.includeLineNumbers = e.target.checked;
+      });
+    }
+    if (el.printOptFooter) {
+      el.printOptFooter.addEventListener('change', (e) => {
+        state.printSettings.includeFooter = e.target.checked;
+      });
+    }
+    if (el.printOptSyntax) {
+      el.printOptSyntax.addEventListener('change', (e) => {
+        state.printSettings.preserveSyntax = e.target.checked;
+      });
+    }
+
+    const bindPrintPills = (containerId, settingKey) => {
+      const pills = document.querySelectorAll(`#${containerId} .print-pill`);
+      pills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          pills.forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          state.printSettings[settingKey] = pill.dataset[settingKey] || pill.dataset.source || pill.dataset.orientation || pill.dataset.margin || pill.dataset.size;
+        });
+      });
+    };
+    bindPrintPills('print-source-pills', 'source');
+    bindPrintPills('print-orientation-pills', 'orientation');
+    bindPrintPills('print-margin-pills', 'margin');
+    bindPrintPills('print-fontsize-pills', 'fontSize');
+
+    // Split Preview Format Selector Pills
+    const previewPills = document.querySelectorAll('.preview-format-pills .preview-pill');
+    previewPills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        previewPills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        state.previewFormat = pill.dataset.format || 'auto';
+        updatePreviews(true);
+        showToast(`👁️ Preview format: ${pill.textContent}`, 'info');
+      });
+    });
+
+    // Save As and CSV export
+    if (el.btnExportSaveAs) {
+      el.btnExportSaveAs.addEventListener('click', () => {
+        if (el.popoverExport) el.popoverExport.classList.add('hidden');
+        exportDocument('save-as');
+      });
+    }
+    if (el.btnExportCsv) {
+      el.btnExportCsv.addEventListener('click', () => {
+        if (el.popoverExport) el.popoverExport.classList.add('hidden');
+        exportDocument('csv');
+      });
+    }
 
     // Theme Switcher
     if (el.themeSelector) {
@@ -4157,7 +4906,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
         e.preventDefault();
-        window.print();
+        openPrintSetupDialog();
       }
       if ((e.ctrlKey || e.metaKey) && e.key === 'g') {
         e.preventDefault();
@@ -4301,18 +5050,25 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'Go to line...', shortcut: 'Ctrl-G', action: () => { jumpToLineNumber(); } },
     { name: 'New Document', shortcut: 'Ctrl-N', action: () => { createNewFile(); } },
     { name: 'Open File', shortcut: 'Ctrl-O', action: () => { openFile(); } },
-    { name: 'Save / Download File', shortcut: 'Ctrl-S', action: () => { downloadFile(); } },
+    { name: 'Recent Files & Drafts', shortcut: '', action: () => { openRecentFilesModal(); } },
+    { name: 'Save / Sync File', shortcut: 'Ctrl-S', action: () => { downloadFile(false); } },
+    { name: 'Save As (Choose Location)...', shortcut: '', action: () => { downloadFile(true); } },
+    { name: 'Print & PDF Setup', shortcut: 'Ctrl-P', action: () => { openPrintSetupDialog(); } },
     { name: 'Copy to Clipboard', shortcut: 'Ctrl-C', action: () => { copyTextToClipboard(); } },
-    { name: 'Print / Export to PDF', shortcut: 'Ctrl-P', action: () => { window.print(); } },
     { name: 'Undo Change', shortcut: 'Ctrl-Z', action: () => { el.btnToolbarUndo.click(); } },
     { name: 'Redo Change', shortcut: 'Ctrl-Y', action: () => { el.btnToolbarRedo.click(); } },
     { name: 'Toggle Word Wrap', shortcut: 'Alt-W', action: () => { cycleWordWrap(); } },
     { name: 'Toggle Line Numbers', shortcut: 'Alt-L', action: () => { el.btnToolbarLines.click(); } },
-    { name: 'Toggle Split HTML Preview', shortcut: 'Alt-V', action: () => { el.btnSplitToggle.click(); } },
+    { name: 'Toggle Split Live Preview', shortcut: 'Alt-V', action: () => { el.btnSplitToggle.click(); } },
+    { name: 'Preview Format: Auto-detect', shortcut: '', action: () => { state.previewFormat = 'auto'; updatePreviews(true); showToast('Preview: Auto-detect', 'info'); } },
+    { name: 'Preview Format: Markdown', shortcut: '', action: () => { state.previewFormat = 'markdown'; updatePreviews(true); showToast('Preview: Markdown', 'info'); } },
+    { name: 'Preview Format: CSV Table', shortcut: '', action: () => { state.previewFormat = 'csv'; updatePreviews(true); showToast('Preview: CSV Table', 'info'); } },
+    { name: 'Preview Format: HTML Live', shortcut: '', action: () => { state.previewFormat = 'html'; updatePreviews(true); showToast('Preview: HTML Live', 'info'); } },
     { name: 'Read Aloud (Text-to-Speech)', shortcut: '', action: () => { toggleSpeechSynthesis(); } },
     { name: 'Diff / Compare Texts', shortcut: '', action: () => { openDiffDialog(); } },
     { name: 'Export: Plain Text (.txt)', shortcut: '', action: () => { exportDocument('txt'); } },
     { name: 'Export: Markdown (.md)', shortcut: '', action: () => { exportDocument('md'); } },
+    { name: 'Export: CSV Table (.csv)', shortcut: '', action: () => { exportDocument('csv'); } },
     { name: 'Export: HTML Document (.html)', shortcut: '', action: () => { exportDocument('html'); } },
     { name: 'Export: Word Document (.doc)', shortcut: '', action: () => { exportDocument('doc'); } },
     { name: 'Dev: URL Encode', shortcut: '', action: () => { runDevTool('url-encode'); } },

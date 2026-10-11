@@ -62,26 +62,93 @@
   </script>
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="styles.css?v=1.0.15">
+  <link rel="stylesheet" href="styles.css?v=1.0.16">
 
   <!-- JSON-LD Structured Schema.org Data -->
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "Editor Text",
-    "url": "https://editortext.com/",
-    "logo": "https://editortext.com/images/logo.png",
-    "description": "A free, clean, and modern online text and photo editor. Edit text documents or photos directly in your browser with advanced word counters and image filters.",
-    "applicationCategory": "UtilityApplication",
-    "operatingSystem": "All",
-    "browserRequirements": "Requires JavaScript. Requires HTML5.",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
+  [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Editor Text",
+      "url": "https://editortext.com/",
+      "logo": "https://editortext.com/images/logo.png",
+      "description": "A free, modern, and private online text editor and document creation tool. Edit text, code, Markdown, and CSV files directly in your web browser with autosave recovery, live split preview, native in-place saving, and advanced print formatting.",
+      "applicationCategory": "UtilityApplication",
+      "operatingSystem": "All",
+      "browserRequirements": "Requires JavaScript. Requires HTML5.",
+      "softwareVersion": "1.0.16",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "In-browser plain text and code editing",
+        "Autosave draft recovery and recent files history",
+        "Native File System Access API for in-place disk saving",
+        "Live Markdown and CSV table split preview",
+        "Customizable Print and PDF layout modal",
+        "10 themes including Dracula, Nord, Cyberpunk, and Light Clean",
+        "Distraction-free Zen writing mode and focus mode",
+        "Real-time reading time, speaking time, and readability analytics"
+      ]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is Editor Text completely free to use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, Editor Text is 100% free with no registration, subscription, or paywalls required. All features including text editing, Markdown and CSV preview, themes, and photo editing are fully unlocked."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Editor Text store or upload my documents to a server?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Editor Text runs entirely client-side inside your web browser. Your text, drafts, and uploaded files are never transferred to or stored on external servers, ensuring strict privacy and confidentiality."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I save files directly to my computer without downloading duplicates?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. On Chromium-based browsers (Chrome, Edge, Opera, Brave), Editor Text utilizes the native File System Access API. When you open a local file, pressing Ctrl+S or clicking Save overwrites the file directly on your disk in place without cluttering your Downloads folder."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does the draft recovery and autosave system work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Editor Text automatically saves your active document and recent drafts locally in your browser. If you close your browser tab, experience a crash, or restart your device, a top banner alerts you to pick up right where you left off with one click."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Editor Text support Markdown and CSV file preview?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. When editing Markdown (.md) or CSV/TSV files, you can enable Split View to render formatted Markdown (headings, lists, checklists, tables, code blocks) or an interactive sortable CSV data table in real time."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I use Editor Text offline without an internet connection?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Editor Text is an installable Progressive Web App (PWA). Once cached, it functions completely offline without requiring an active internet connection."
+          }
+        }
+      ]
     }
-  }
+  ]
   </script>
 </head>
 <body>
@@ -102,6 +169,9 @@
         <div class="filename-container" title="Click to rename file" style="margin-left: var(--space-2);">
           <input type="text" id="filename" class="filename-input" value="untitled" aria-label="File Name">
           <span id="file-extension" class="filename-ext">.txt</span>
+          <span id="file-sync-badge" class="file-sync-badge hidden" title="Linked to local file system (In-Place Disk Sync Active)">
+            <span class="material-symbols-outlined" style="font-size: 1rem; color: var(--color-success, #10b981);">sync_saved_locally</span>
+          </span>
         </div>
       </div>
 
@@ -118,12 +188,18 @@
           <span class="material-symbols-outlined">folder_open</span>
           <span>Open</span>
         </button>
-        <input type="file" id="file-selector" accept=".txt,.js,.css,.html,.json,.md,.png,.jpg,.jpeg" aria-label="Choose file to open">
+        <input type="file" id="file-selector" accept=".txt,.js,.css,.html,.json,.md,.png,.jpg,.jpeg,.csv,.tsv" aria-label="Choose file to open">
 
-        <!-- Save/Download File -->
-        <button class="btn btn-primary" id="btn-save" title="Save / Download File (Ctrl+S)" aria-label="Save / Download File (Ctrl+S)">
-          <span class="material-symbols-outlined">download</span>
-          <span>Save</span>
+        <!-- Save File (In-Place or Download) -->
+        <button class="btn btn-primary" id="btn-save" title="Save File (Ctrl+S)" aria-label="Save File (Ctrl+S)">
+          <span class="material-symbols-outlined">save</span>
+          <span id="btn-save-label">Save</span>
+        </button>
+
+        <!-- Recent Files & Drafts -->
+        <button class="btn" id="btn-recents" title="Recent Files &amp; Drafts" aria-label="Open Recent Files and Drafts">
+          <span class="material-symbols-outlined">history</span>
+          <span>Recents</span>
         </button>
 
         <!-- Export Formats Menu Trigger -->
@@ -170,6 +246,31 @@
 
       </div>
     </header>
+
+    <!-- RESUME DRAFT BANNER (Pick up where you left off) -->
+    <aside class="resume-draft-banner hidden" id="resume-draft-banner" aria-label="Draft recovery notification">
+      <div class="resume-draft-content">
+        <span class="material-symbols-outlined resume-draft-icon">history_toggle_off</span>
+        <div class="resume-draft-text">
+          <span class="resume-draft-lead">Pick up where you left off:</span>
+          <strong class="resume-draft-name" id="resume-draft-filename">untitled.txt</strong>
+          <span class="resume-draft-meta" id="resume-draft-meta">&bull; 0 words</span>
+        </div>
+      </div>
+      <div class="resume-draft-actions">
+        <button type="button" class="btn btn-primary btn-sm" id="btn-resume-draft" aria-label="Restore previous draft">
+          <span class="material-symbols-outlined" style="font-size: 1rem;">restart_alt</span>
+          <span>Resume</span>
+        </button>
+        <button type="button" class="btn btn-sm" id="btn-view-recents-banner" aria-label="View recent documents">
+          <span class="material-symbols-outlined" style="font-size: 1rem;">history</span>
+          <span>All Recents</span>
+        </button>
+        <button type="button" class="btn-icon-close" id="btn-dismiss-draft-banner" aria-label="Dismiss draft notification" title="Dismiss notification">
+          <span class="material-symbols-outlined" style="font-size: 1.15rem;">close</span>
+        </button>
+      </div>
+    </aside>
 
     <!-- NAVIGATION TABS -->
     <nav class="tab-nav">
@@ -408,9 +509,13 @@
               </button>
               
               <div class="btn-group" style="justify-content: center; width: 100%; max-width: 384px; gap: var(--space-2);">
-                <button class="btn btn-primary" id="btn-welcome-open-comp" style="width: 100%; justify-content: center;" aria-label="Open File from Computer">
+                <button class="btn btn-primary" id="btn-welcome-open-comp" style="flex: 1; justify-content: center;" aria-label="Open File from Computer">
                   <span class="material-symbols-outlined">computer</span>
-                  <span>Open from Computer</span>
+                  <span>Open File</span>
+                </button>
+                <button class="btn" id="btn-welcome-recents" style="flex: 1; justify-content: center;" aria-label="Open Recent Files and Drafts">
+                  <span class="material-symbols-outlined">history</span>
+                  <span>Recent Files</span>
                 </button>
               </div>
             </div>
@@ -576,16 +681,25 @@
           </button>
           <div class="split-preview-wrapper hidden" id="split-preview-container">
             <div class="split-preview-header">
-              <span class="preview-title-label">
-                <span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle; margin-right: 4px;">language</span>
-                Live HTML Preview
-              </span>
+              <div class="split-preview-title-group">
+                <span class="preview-title-label" id="split-preview-title">
+                  <span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle; margin-right: 4px;">visibility</span>
+                  Live Preview
+                </span>
+                <div class="preview-format-pills" role="group" aria-label="Preview render format">
+                  <button type="button" class="preview-pill active" data-format="auto" id="preview-pill-auto" title="Auto-detect format from file or content">Auto</button>
+                  <button type="button" class="preview-pill" data-format="markdown" id="preview-pill-md" title="Render as formatted Markdown">Markdown</button>
+                  <button type="button" class="preview-pill" data-format="csv" id="preview-pill-csv" title="Render as interactive CSV Table">CSV Table</button>
+                  <button type="button" class="preview-pill" data-format="html" id="preview-pill-html" title="Render as live HTML">HTML</button>
+                  <button type="button" class="preview-pill" data-format="raw" id="preview-pill-raw" title="Render as raw preformatted text">Raw</button>
+                </div>
+              </div>
               <button class="btn btn-run-preview" id="btn-run-preview" title="Refresh Live Preview (Alt+R)" aria-label="Refresh Live Preview (Alt+R)">
-                <span class="material-symbols-outlined" style="font-size: 1.1rem;">play_arrow</span>
-                <span>Run</span>
+                <span class="material-symbols-outlined" style="font-size: 1.1rem;">refresh</span>
+                <span>Refresh</span>
               </button>
             </div>
-            <iframe id="split-preview-iframe" sandbox="allow-scripts" title="Split Live HTML Preview"></iframe>
+            <iframe id="split-preview-iframe" sandbox="allow-scripts" title="Split Live Preview"></iframe>
           </div>
         </div>
 
@@ -648,8 +762,13 @@
 
         <!-- Export Document Popover -->
         <div class="toolbar-popover hidden" id="popover-export" role="menu" aria-label="Export Document Formats" style="width: 220px;">
-          <div class="popover-header">Export Document</div>
+          <div class="popover-header">Save &amp; Export Document</div>
           <div class="popover-section">
+            <button class="popover-item" id="btn-export-save-as" role="menuitem" title="Save file with new name/location">
+              <span class="material-symbols-outlined" style="font-size: 1rem;">save_as</span>
+              <span>Save As...</span>
+            </button>
+            <div style="border-top: 1px solid var(--border-color); margin: 4px 0;"></div>
             <button class="popover-item" id="btn-export-txt" role="menuitem" title="Export as Plain Text (.txt)">
               <span class="material-symbols-outlined" style="font-size: 1rem;">description</span>
               <span>Plain Text (.txt)</span>
@@ -657,6 +776,10 @@
             <button class="popover-item" id="btn-export-md" role="menuitem" title="Export as Markdown (.md)">
               <span class="material-symbols-outlined" style="font-size: 1rem;">edit_note</span>
               <span>Markdown (.md)</span>
+            </button>
+            <button class="popover-item" id="btn-export-csv" role="menuitem" title="Export as CSV / Tabular (.csv)">
+              <span class="material-symbols-outlined" style="font-size: 1rem;">table_chart</span>
+              <span>CSV Table (.csv)</span>
             </button>
             <button class="popover-item" id="btn-export-html" role="menuitem" title="Export as HTML (.html)">
               <span class="material-symbols-outlined" style="font-size: 1rem;">code</span>
@@ -666,9 +789,9 @@
               <span class="material-symbols-outlined" style="font-size: 1rem;">article</span>
               <span>Word Doc (.doc)</span>
             </button>
-            <button class="popover-item" id="btn-export-pdf" role="menuitem" title="Print / Save as PDF">
+            <button class="popover-item" id="btn-export-pdf" role="menuitem" title="Print / Configure PDF">
               <span class="material-symbols-outlined" style="font-size: 1rem;">picture_as_pdf</span>
-              <span>Print / PDF (.pdf)</span>
+              <span>Print / PDF Setup</span>
             </button>
           </div>
         </div>
@@ -977,6 +1100,244 @@
         <span class="material-symbols-outlined">chevron_right</span>
       </button>
     </main>
+
+    <!-- COMPREHENSIVE SEO KNOWLEDGE HUB & ENCYCLOPEDIC USER GUIDE -->
+    <section class="seo-knowledge-hub" id="seo-knowledge-hub" aria-label="Comprehensive Text Editor Guide and Reference">
+      <div class="seo-hub-container">
+        
+        <!-- SECTION 1: OVERVIEW & UTILITY -->
+        <article class="seo-article-card">
+          <h2>The Modern Online Text Editor: Fast, Private &amp; Universal</h2>
+          <p>
+            An <strong>online text editor</strong> is a fundamental utility for anyone who writes, codes, formats, or processes textual information. Unlike bloated word processors like Microsoft Word or cloud platforms that require persistent logins and cloud syncing, <strong>Editor Text (editortext.com)</strong> provides an instant, zero-friction canvas directly in your web browser. It opens instantaneously, requires no account or credit card, and functions entirely client-side on your local device.
+          </p>
+          <p>
+            Whether you are taking rapid scratchpad notes, drafting Markdown documentation, inspecting CSV data files, formatting JSON payloads, or writing code in HTML, CSS, JavaScript, or Python, Editor Text delivers an ultra-clean typing experience backed by robust developer tools and writing analytics.
+          </p>
+          <div class="seo-feature-highlights">
+            <div class="seo-feature-box">
+              <span class="material-symbols-outlined seo-box-icon">security</span>
+              <h3>100% Client-Side Privacy</h3>
+              <p>Your documents, passwords, code snippets, and confidential notes never touch an external server. All text processing and file rendering execute locally in your browser memory.</p>
+            </div>
+            <div class="seo-feature-box">
+              <span class="material-symbols-outlined seo-box-icon">sync_saved_locally</span>
+              <h3>Native Disk Synchronization</h3>
+              <p>Utilizing modern Chromium File System Access APIs, you can open and save files directly to your local drive without generating repetitive download copies.</p>
+            </div>
+            <div class="seo-feature-box">
+              <span class="material-symbols-outlined seo-box-icon">history_edu</span>
+              <h3>Autosave &amp; Draft Recovery</h3>
+              <p>Never lose your work. Editor Text automatically tracks active drafts with intelligent recovery banners and a dedicated multi-file Recent Drafts manager.</p>
+            </div>
+            <div class="seo-feature-box">
+              <span class="material-symbols-outlined seo-box-icon">splitscreen</span>
+              <h3>Live Split Preview Engine</h3>
+              <p>Preview Markdown with formatted headings, tables, and task checklists, render CSV files as interactive zebra-striped tables, or inspect live HTML output instantly.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- SECTION 2: KEYBOARD SHORTCUTS REFERENCE TABLE -->
+        <article class="seo-article-card">
+          <h2>Essential Keyboard Shortcuts for Rapid Productivity</h2>
+          <p>
+            Maximize your writing speed with standard keyboard shortcuts recognized across Windows, macOS, and Linux:
+          </p>
+          <div class="seo-table-wrapper">
+            <table class="seo-table" aria-label="Keyboard Shortcuts Reference">
+              <thead>
+                <tr>
+                  <th scope="col">Action</th>
+                  <th scope="col">Windows &amp; Linux</th>
+                  <th scope="col">macOS</th>
+                  <th scope="col">Purpose</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Save / Save in Place</strong></td>
+                  <td><kbd>Ctrl</kbd> + <kbd>S</kbd></td>
+                  <td><kbd>Cmd</kbd> + <kbd>S</kbd></td>
+                  <td>Save changes directly to local file or download file</td>
+                </tr>
+                <tr>
+                  <td><strong>Open Local File</strong></td>
+                  <td><kbd>Ctrl</kbd> + <kbd>O</kbd></td>
+                  <td><kbd>Cmd</kbd> + <kbd>O</kbd></td>
+                  <td>Open any TXT, MD, CSV, JSON, HTML, or code file from disk</td>
+                </tr>
+                <tr>
+                  <td><strong>New Document</strong></td>
+                  <td><kbd>Ctrl</kbd> + <kbd>N</kbd></td>
+                  <td><kbd>Cmd</kbd> + <kbd>N</kbd></td>
+                  <td>Clear canvas and initialize a fresh document</td>
+                </tr>
+                <tr>
+                  <td><strong>Find &amp; Replace</strong></td>
+                  <td><kbd>Ctrl</kbd> + <kbd>F</kbd></td>
+                  <td><kbd>Cmd</kbd> + <kbd>F</kbd></td>
+                  <td>Toggle the interactive search and replace widget</td>
+                </tr>
+                <tr>
+                  <td><strong>Print / PDF Setup</strong></td>
+                  <td><kbd>Ctrl</kbd> + <kbd>P</kbd></td>
+                  <td><kbd>Cmd</kbd> + <kbd>P</kbd></td>
+                  <td>Launch advanced print configuration and PDF export modal</td>
+                </tr>
+                <tr>
+                  <td><strong>Command Palette</strong></td>
+                  <td><kbd>Ctrl</kbd> + <kbd>K</kbd> or <kbd>F1</kbd></td>
+                  <td><kbd>Cmd</kbd> + <kbd>K</kbd> or <kbd>F1</kbd></td>
+                  <td>Access all editor commands, themes, and tools via fuzzy search</td>
+                </tr>
+                <tr>
+                  <td><strong>Toggle Split Preview</strong></td>
+                  <td><kbd>Alt</kbd> + <kbd>V</kbd></td>
+                  <td><kbd>Option</kbd> + <kbd>V</kbd></td>
+                  <td>Toggle real-time split view for Markdown, CSV, or HTML</td>
+                </tr>
+                <tr>
+                  <td><strong>Toggle Word Wrap</strong></td>
+                  <td><kbd>Alt</kbd> + <kbd>W</kbd></td>
+                  <td><kbd>Option</kbd> + <kbd>W</kbd></td>
+                  <td>Switch between viewport word wrapping and horizontal scroll</td>
+                </tr>
+                <tr>
+                  <td><strong>Exit Zen Mode</strong></td>
+                  <td><kbd>Esc</kbd></td>
+                  <td><kbd>Esc</kbd></td>
+                  <td>Return to standard workspace from distraction-free mode</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <!-- SECTION 3: ENCODINGS & FILE ARCHITECTURE -->
+        <article class="seo-article-card">
+          <h2>Character Encodings &amp; File Formats: The Comprehensive Guide</h2>
+          <p>
+            Understanding character encodings is essential for anyone dealing with cross-platform text files, internationalization, web assets, or programming scripts.
+          </p>
+          <h3>From ASCII to Modern UTF-8</h3>
+          <p>
+            In the 1960s, the <strong>American Standard Code for Information Interchange (ASCII)</strong> defined a 7-bit standard mapping 128 integer values to English letters, numbers, and punctuation. While efficient for basic English, ASCII was incapable of representing accented letters (e.g. &eacute;, &uuml;), non-Latin scripts (Cyrillic, Arabic, Greek, Chinese, Japanese), or emojis.
+          </p>
+          <p>
+            Today, <strong>UTF-8 (8-bit Unicode Transformation Format)</strong> is the universal character encoding of the World Wide Web, powering over 98% of all websites. UTF-8 is a variable-length encoding: standard ASCII characters consume exactly 1 byte (making UTF-8 100% backward-compatible with ASCII), Latin-based accented characters consume 2 bytes, East Asian characters consume 3 bytes, and mathematical symbols and emojis consume 4 bytes.
+          </p>
+          <h3>The Byte Order Mark (BOM) Dilemma</h3>
+          <p>
+            The <strong>Byte Order Mark (BOM)</strong> consists of the byte sequence <code>EF BB BF</code> placed at the very beginning of a file to signal UTF-8 encoding. While Windows applications like legacy Notepad frequently added BOM markers, the Unicode Consortium explicitly recommends <em>omitting</em> the BOM for UTF-8 files because it introduces unexpected invisible characters that break web servers, Linux bash scripts, JSON parsers, and compilers. <strong>Editor Text guarantees clean, standard UTF-8 output without rogue BOM headers</strong>.
+          </p>
+          <h3>Line Endings: Unix LF vs. Windows CRLF</h3>
+          <p>
+            Operating systems handle line breaks differently:
+          </p>
+          <ul>
+            <li><strong>Unix / Linux / macOS (LF)</strong>: Uses Line Feed (<code>\n</code>, byte <code>0x0A</code>). This is the web and programming standard.</li>
+            <li><strong>Windows (CRLF)</strong>: Uses Carriage Return followed by Line Feed (<code>\r\n</code>, bytes <code>0x0D 0x0A</code>).</li>
+          </ul>
+          <p>
+            When downloading or copying text in Editor Text, line breaks are automatically normalized to ensure consistent formatting across git repositories, code linters, and text viewers.
+          </p>
+        </article>
+
+        <!-- SECTION 4: MARKDOWN REFERENCE -->
+        <article class="seo-article-card">
+          <h2>Markdown Syntax &amp; Lightweight Markup Cheat Sheet</h2>
+          <p>
+            Created by John Gruber and Aaron Swartz in 2004, <strong>Markdown</strong> allows writers to compose structured formatting using plain, human-readable text characters. In Editor Text, you can view your rendered Markdown document side-by-side in real time using the Split Preview mode.
+          </p>
+          <div class="seo-markdown-grid">
+            <div class="seo-md-item">
+              <span class="seo-md-label">Headings</span>
+              <pre><code># Heading 1 (Page Title)
+## Heading 2 (Major Section)
+### Heading 3 (Subsection)</code></pre>
+            </div>
+            <div class="seo-md-item">
+              <span class="seo-md-label">Text Emphasis</span>
+              <pre><code>**Bold Text** or __Bold Text__
+*Italic Text* or _Italic Text_
+~~Strikethrough text~~
+`Inline code snippet`</code></pre>
+            </div>
+            <div class="seo-md-item">
+              <span class="seo-md-label">Lists &amp; Checklists</span>
+              <pre><code>- [x] Completed task item
+- [ ] Incomplete task item
+- Unordered bullet point
+1. Ordered numbered list</code></pre>
+            </div>
+            <div class="seo-md-item">
+              <span class="seo-md-label">GitHub Flavored Tables</span>
+              <pre><code>| Column A | Column B | Status |
+| :------- | :------: | -----: |
+| Item 1   | Value 1  | Active |
+| Item 2   | Value 2  | Done   |</code></pre>
+            </div>
+          </div>
+        </article>
+
+        <!-- SECTION 5: FAQ ACCORDION -->
+        <article class="seo-article-card">
+          <h2>Frequently Asked Questions (FAQ)</h2>
+          <div class="seo-faq-accordion">
+            <details class="seo-faq-item" open>
+              <summary><h3>Is Editor Text completely free to use?</h3></summary>
+              <div class="seo-faq-answer">
+                <p>Yes, Editor Text is 100% free with no registration, subscriptions, or paywalls. All functionality—including plain text and code editing, Markdown and CSV live rendering, 10 aesthetic themes, text transformations, and photo editing—is completely unlocked for all users.</p>
+              </div>
+            </details>
+
+            <details class="seo-faq-item">
+              <summary><h3>Does Editor Text store or upload my documents to a server?</h3></summary>
+              <div class="seo-faq-answer">
+                <p>No. Editor Text runs completely client-side in your web browser. Your text, drafts, confidential notes, and uploaded photos never leave your device and are never sent to external servers, providing maximum privacy and confidentiality.</p>
+              </div>
+            </details>
+
+            <details class="seo-faq-item">
+              <summary><h3>Can I save files directly to my computer without downloading duplicates?</h3></summary>
+              <div class="seo-faq-answer">
+                <p>Yes. In modern desktop browsers like Chrome, Edge, and Opera, Editor Text leverages the native File System Access API. When you open a local file, pressing <kbd>Ctrl+S</kbd> or clicking "Save" overwrites the file directly on your hard drive in place, preventing your Downloads folder from filling up with duplicate copies.</p>
+              </div>
+            </details>
+
+            <details class="seo-faq-item">
+              <summary><h3>How does the autosave and draft recovery feature work?</h3></summary>
+              <div class="seo-faq-answer">
+                <p>Editor Text continuously stores your active draft and a history of up to 15 recent files in your browser's local storage. If you accidentally close the tab, your browser crashes, or you reboot your computer, a "Pick up where you left off" notification banner appears when you return, allowing you to restore your document with a single click.</p>
+              </div>
+            </details>
+
+            <details class="seo-faq-item">
+              <summary><h3>What file formats does Editor Text support?</h3></summary>
+              <div class="seo-faq-answer">
+                <p>Editor Text supports opening, editing, and exporting plain text (<code>.txt</code>), Markdown (<code>.md</code>), Comma-Separated Values (<code>.csv</code>), Tab-Separated Values (<code>.tsv</code>), HTML (<code>.html</code>), CSS (<code>.css</code>), JavaScript (<code>.js</code>), TypeScript (<code>.ts</code>), JSON (<code>.json</code>), Python (<code>.py</code>), SQL (<code>.sql</code>), and C++ (<code>.cpp</code>), as well as standard images (JPG, PNG, WEBP) in the Photo Editor.</p>
+              </div>
+            </details>
+
+            <details class="seo-faq-item">
+              <summary><h3>How can I export my text as a clean PDF or print it?</h3></summary>
+              <div class="seo-faq-answer">
+                <p>Click the "Export" menu or press <kbd>Ctrl+P</kbd> to open our dedicated Print &amp; PDF Setup modal. You can choose between raw text or rendered Markdown/HTML, select your preferred paper size (A4, Letter, Legal), customize margins and font size, and toggle line numbers or page headers before printing or saving to PDF.</p>
+              </div>
+            </details>
+
+            <details class="seo-faq-item">
+              <summary><h3>Can I use Editor Text offline without an internet connection?</h3></summary>
+              <div class="seo-faq-answer">
+                <p>Yes. Editor Text is configured as a Progressive Web App (PWA). Once loaded in your browser, all core assets and editors are cached locally, allowing you to edit and create files even when disconnected from the internet.</p>
+              </div>
+            </details>
+          </div>
+        </article>
+
+      </div>
+    </section>
 
     <!-- FOOTER -->
     <footer class="glass-panel">
@@ -1397,6 +1758,126 @@
     </div>
   </dialog>
 
+  <!-- RECENT FILES & DRAFTS DIALOG -->
+  <dialog id="recent-files-dialog" class="glass-panel recent-files-dialog" aria-labelledby="recent-files-title">
+    <div class="dialog-header">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span class="material-symbols-outlined" style="color: var(--accent-color);">history</span>
+        <h2 id="recent-files-title" style="margin: 0; font-size: 1.15rem;">Recent Files &amp; Drafts</h2>
+      </div>
+      <button class="btn btn-icon-only btn-danger" id="btn-close-recent-files" aria-label="Close Recent Files Dialog">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="dialog-body recent-files-body">
+      <div class="recent-files-toolbar">
+        <span class="recent-files-count" id="recent-files-count">0 saved drafts</span>
+        <button class="btn btn-sm btn-danger" id="btn-clear-recent-files" title="Clear all recent files from browser">
+          <span class="material-symbols-outlined" style="font-size: 1rem;">delete_sweep</span>
+          <span>Clear All</span>
+        </button>
+      </div>
+      <div class="recent-files-list" id="recent-files-list">
+        <!-- Dynamically rendered items -->
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ADVANCED PRINT & PDF SETUP DIALOG -->
+  <dialog id="print-dialog" class="glass-panel print-dialog" aria-labelledby="print-dialog-title">
+    <div class="dialog-header">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span class="material-symbols-outlined" style="color: var(--accent-color);">print</span>
+        <h2 id="print-dialog-title" style="margin: 0; font-size: 1.15rem;">Print &amp; PDF Setup</h2>
+      </div>
+      <button class="btn btn-icon-only btn-danger" id="btn-close-print-dialog" aria-label="Close Print Dialog">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="dialog-body print-dialog-body">
+      <div class="print-config-grid">
+        <!-- Content Source -->
+        <div class="print-config-row">
+          <span class="print-config-label">Content Source</span>
+          <div class="print-pill-group" id="print-source-pills">
+            <button type="button" class="print-pill active" data-source="raw">Raw Plain Text</button>
+            <button type="button" class="print-pill" data-source="rendered">Rendered Preview (Markdown/CSV/HTML)</button>
+          </div>
+        </div>
+
+        <!-- Paper Size -->
+        <div class="print-config-row">
+          <label for="print-paper-size" class="print-config-label">Paper Size</label>
+          <select id="print-paper-size" class="print-select">
+            <option value="a4" selected>A4 (210 &times; 297 mm)</option>
+            <option value="letter">US Letter (8.5 &times; 11 in)</option>
+            <option value="legal">Legal (8.5 &times; 14 in)</option>
+          </select>
+        </div>
+
+        <!-- Orientation -->
+        <div class="print-config-row">
+          <span class="print-config-label">Orientation</span>
+          <div class="print-pill-group" id="print-orientation-pills">
+            <button type="button" class="print-pill active" data-orientation="portrait">Portrait</button>
+            <button type="button" class="print-pill" data-orientation="landscape">Landscape</button>
+          </div>
+        </div>
+
+        <!-- Margins -->
+        <div class="print-config-row">
+          <span class="print-config-label">Margins</span>
+          <div class="print-pill-group" id="print-margin-pills">
+            <button type="button" class="print-pill" data-margin="compact">Compact (10mm)</button>
+            <button type="button" class="print-pill active" data-margin="standard">Standard (20mm)</button>
+            <button type="button" class="print-pill" data-margin="wide">Wide (30mm)</button>
+          </div>
+        </div>
+
+        <!-- Font Size -->
+        <div class="print-config-row">
+          <span class="print-config-label">Font Size</span>
+          <div class="print-pill-group" id="print-fontsize-pills">
+            <button type="button" class="print-pill" data-size="10pt">Small (10pt)</button>
+            <button type="button" class="print-pill active" data-size="12pt">Standard (12pt)</button>
+            <button type="button" class="print-pill" data-size="14pt">Large (14pt)</button>
+          </div>
+        </div>
+
+        <!-- Checkbox Options -->
+        <div class="print-options-grid">
+          <label class="print-checkbox-item">
+            <input type="checkbox" id="print-opt-header" checked>
+            <span>Include document title &amp; timestamp header</span>
+          </label>
+          <label class="print-checkbox-item">
+            <input type="checkbox" id="print-opt-linenumbers">
+            <span>Include line numbers</span>
+          </label>
+          <label class="print-checkbox-item">
+            <input type="checkbox" id="print-opt-footer" checked>
+            <span>Include page counter footer</span>
+          </label>
+          <label class="print-checkbox-item">
+            <input type="checkbox" id="print-opt-syntax" checked>
+            <span>Preserve styling &amp; table formatting</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="print-dialog-actions">
+        <button type="button" class="btn" id="btn-cancel-print">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-execute-print">
+          <span class="material-symbols-outlined">print</span>
+          <span>Print / Save PDF Now</span>
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Dedicated Print Container for High-Fidelity Printing -->
+  <div id="print-render-container" class="print-render-container" aria-hidden="true"></div>
+
   <!-- GDPR Cookie Consent Banner -->
   <div id="cookie-banner" class="glass-panel cookie-banner hidden" role="region" aria-label="Cookie consent">
     <div class="cookie-content">
@@ -1410,6 +1891,6 @@
   </div>
 
   <!-- Custom Logic JS -->
-  <script src="app.js?v=1.0.15"></script>
+  <script src="app.js?v=1.0.16"></script>
 </body>
 </html>
