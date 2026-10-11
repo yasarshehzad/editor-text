@@ -34,8 +34,14 @@
   <meta name="twitter:description" content="Create, open, edit and download text files and photos. Free, fast, and secure in-browser tools.">
   <meta name="twitter:image" content="images/logo.png">
 
-  <!-- Favicon -->
+  <!-- Favicon & PWA App Icons -->
   <link rel="icon" href="images/logo.png" type="image/png">
+  <link rel="apple-touch-icon" href="images/logo.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a0a0f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Editor Text">
 
   <!-- Google Fonts & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,7 +62,7 @@
   </script>
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="styles.css?v=1.0.13">
+  <link rel="stylesheet" href="styles.css?v=1.0.14">
 
   <!-- JSON-LD Structured Schema.org Data -->
   <script type="application/ld+json">
@@ -118,6 +124,18 @@
         <button class="btn btn-primary" id="btn-save" title="Save / Download File (Ctrl+S)" aria-label="Save / Download File (Ctrl+S)">
           <span class="material-symbols-outlined">download</span>
           <span>Save</span>
+        </button>
+
+        <!-- Export Formats Menu Trigger -->
+        <button class="btn" id="btn-export-menu" title="Export as Markdown, HTML, Word, PDF" aria-label="Export document formats" aria-haspopup="true" aria-expanded="false">
+          <span class="material-symbols-outlined">output</span>
+          <span>Export</span>
+        </button>
+
+        <!-- Install PWA Button (Dynamically shown when supported) -->
+        <button class="btn btn-install-pwa hidden" id="btn-install-pwa" title="Install Editor Text as an App" aria-label="Install App">
+          <span class="material-symbols-outlined">install_desktop</span>
+          <span>Install</span>
         </button>
 
         <!-- Copy File Content -->
@@ -355,6 +373,12 @@
           
           <!-- Utilities (Right aligned) -->
           <div class="toolbar-group" style="margin-left: auto;">
+            <button class="tool-btn" id="btn-toolbar-tts" title="Read Aloud / Text-to-Speech" aria-label="Read Aloud Text-to-Speech">
+              <span class="material-symbols-outlined">volume_up</span>
+            </button>
+            <button class="tool-btn" id="btn-toolbar-diff" title="Compare Texts / Diff Checker" aria-label="Compare Texts Diff Checker">
+              <span class="material-symbols-outlined">difference</span>
+            </button>
             <button class="tool-btn" id="btn-toolbar-zen" title="Zen Writing Mode (Distraction-Free)" aria-label="Toggle Zen Writing Mode">
               <span class="material-symbols-outlined">fullscreen</span>
             </button>
@@ -534,6 +558,58 @@
             <button class="popover-item" id="btn-trim-spaces" role="menuitem" title="Trim trailing whitespace from lines" aria-label="Trim trailing whitespace">
               <span class="material-symbols-outlined" style="font-size: 1rem;">space_bar</span>
               <span>Trim Trailing Spaces</span>
+            </button>
+            <div style="border-top: 1px solid var(--border-color); margin: 4px 0;"></div>
+            <button class="popover-item" id="btn-url-encode" role="menuitem" title="URL Encode selected text" aria-label="URL Encode text">
+              <span class="material-symbols-outlined" style="font-size: 1rem;">link</span>
+              <span>URL Encode</span>
+            </button>
+            <button class="popover-item" id="btn-url-decode" role="menuitem" title="URL Decode selected text" aria-label="URL Decode text">
+              <span class="material-symbols-outlined" style="font-size: 1rem;">link_off</span>
+              <span>URL Decode</span>
+            </button>
+            <button class="popover-item" id="btn-b64-encode" role="menuitem" title="Base64 Encode selected text" aria-label="Base64 Encode text">
+              <span class="material-symbols-outlined" style="font-size: 1rem;">lock</span>
+              <span>Base64 Encode</span>
+            </button>
+            <button class="popover-item" id="btn-b64-decode" role="menuitem" title="Base64 Decode selected text" aria-label="Base64 Decode text">
+              <span class="material-symbols-outlined" style="font-size: 1rem;">lock_open</span>
+              <span>Base64 Decode</span>
+            </button>
+            <button class="popover-item" id="btn-json-prettify" role="menuitem" title="Prettify / Format JSON" aria-label="Prettify JSON">
+              <span class="material-symbols-outlined" style="font-size: 1rem;">data_object</span>
+              <span>Prettify JSON</span>
+            </button>
+            <button class="popover-item" id="btn-json-minify" role="menuitem" title="Minify / Compress JSON" aria-label="Minify JSON">
+              <span class="material-symbols-outlined" style="font-size: 1rem;">compress</span>
+              <span>Minify JSON</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Export Document Popover -->
+        <div class="toolbar-popover hidden" id="popover-export" role="menu" aria-label="Export Document Formats" style="width: 220px;">
+          <div class="popover-header">Export Document</div>
+          <div class="popover-section">
+            <button class="popover-item" id="btn-export-txt" role="menuitem" title="Export as Plain Text (.txt)">
+              <span class="material-symbols-outlined" style="font-size: 1rem;">description</span>
+              <span>Plain Text (.txt)</span>
+            </button>
+            <button class="popover-item" id="btn-export-md" role="menuitem" title="Export as Markdown (.md)">
+              <span class="material-symbols-outlined" style="font-size: 1rem;">edit_note</span>
+              <span>Markdown (.md)</span>
+            </button>
+            <button class="popover-item" id="btn-export-html" role="menuitem" title="Export as HTML (.html)">
+              <span class="material-symbols-outlined" style="font-size: 1rem;">code</span>
+              <span>HTML Page (.html)</span>
+            </button>
+            <button class="popover-item" id="btn-export-doc" role="menuitem" title="Export as Word Doc (.doc)">
+              <span class="material-symbols-outlined" style="font-size: 1rem;">article</span>
+              <span>Word Doc (.doc)</span>
+            </button>
+            <button class="popover-item" id="btn-export-pdf" role="menuitem" title="Print / Save as PDF">
+              <span class="material-symbols-outlined" style="font-size: 1rem;">picture_as_pdf</span>
+              <span>Print / PDF (.pdf)</span>
             </button>
           </div>
         </div>
@@ -885,6 +961,54 @@
     </div>
   </dialog>
 
+  <!-- DIFF / TEXT COMPARISON DIALOG -->
+  <dialog id="diff-dialog" class="glass-panel diff-dialog" aria-labelledby="diff-title">
+    <div class="dialog-header">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span class="material-symbols-outlined" style="color: var(--accent-color);">difference</span>
+        <h2 id="diff-title" style="margin: 0; font-size: 1.15rem;">Text Comparison &amp; Diff Checker</h2>
+      </div>
+      <button class="btn btn-icon-only btn-danger" id="btn-close-diff" aria-label="Close Diff Dialog">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="dialog-body diff-dialog-body">
+      <div class="diff-input-grid">
+        <div class="diff-input-col">
+          <label for="diff-original" class="diff-label">Original Text (Before)</label>
+          <textarea id="diff-original" class="diff-textarea" placeholder="Paste or type original text here..."></textarea>
+        </div>
+        <div class="diff-input-col">
+          <label for="diff-modified" class="diff-label">Modified Text (After)</label>
+          <textarea id="diff-modified" class="diff-textarea" placeholder="Paste or type modified text here..."></textarea>
+        </div>
+      </div>
+      <div class="diff-actions-bar">
+        <button class="btn btn-primary" id="btn-run-diff" aria-label="Compare differences">
+          <span class="material-symbols-outlined">compare_arrows</span>
+          <span>Compare Differences</span>
+        </button>
+        <button class="btn" id="btn-diff-swap" title="Swap Texts" aria-label="Swap Texts">
+          <span class="material-symbols-outlined">swap_horiz</span>
+          <span>Swap</span>
+        </button>
+        <button class="btn" id="btn-diff-load-editor" title="Load Current Editor Text into Original" aria-label="Load from Editor">
+          <span class="material-symbols-outlined">input</span>
+          <span>Load From Editor</span>
+        </button>
+        <button class="btn" id="btn-diff-apply-editor" title="Apply Modified Text to Editor" aria-label="Apply to Editor">
+          <span class="material-symbols-outlined">done</span>
+          <span>Apply to Editor</span>
+        </button>
+        <div id="diff-summary-badge" class="diff-summary-badge hidden"></div>
+      </div>
+      <div id="diff-results-container" class="diff-results-container hidden" aria-live="polite">
+        <div class="diff-results-header">Line-by-Line Comparison</div>
+        <div id="diff-output-lines" class="diff-output-lines"></div>
+      </div>
+    </div>
+  </dialog>
+
   <!-- KEYBOARD SHORTCUTS DIALOG -->
   <dialog id="shortcuts-dialog" class="glass-panel" aria-labelledby="shortcuts-title">
     <div class="dialog-header">
@@ -1227,6 +1351,6 @@
   </div>
 
   <!-- Custom Logic JS -->
-  <script src="app.js?v=1.0.13"></script>
+  <script src="app.js?v=1.0.14"></script>
 </body>
 </html>

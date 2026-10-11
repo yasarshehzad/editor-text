@@ -39,6 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let savedTextareaStart = 0;
   let savedTextareaEnd = 0;
   let lastFocusedTrigger = null;
+  let deferredInstallPrompt = null;
+  let speechUtterance = null;
+  let isSpeaking = false;
 
   // --- STATE ---
   const state = {
@@ -354,7 +357,42 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Footer Links
     footerAbout: document.getElementById('footer-about-link'),
-    toastContainer: document.getElementById('toast-container')
+    toastContainer: document.getElementById('toast-container'),
+
+    // Export & PWA Elements
+    btnExportMenu: document.getElementById('btn-export-menu'),
+    popoverExport: document.getElementById('popover-export'),
+    btnExportTxt: document.getElementById('btn-export-txt'),
+    btnExportMd: document.getElementById('btn-export-md'),
+    btnExportHtml: document.getElementById('btn-export-html'),
+    btnExportDoc: document.getElementById('btn-export-doc'),
+    btnExportPdf: document.getElementById('btn-export-pdf'),
+    btnInstallPwa: document.getElementById('btn-install-pwa'),
+
+    // TTS & Diff Toolbar
+    btnToolbarTts: document.getElementById('btn-toolbar-tts'),
+    btnToolbarDiff: document.getElementById('btn-toolbar-diff'),
+
+    // Diff Dialog Elements
+    diffDialog: document.getElementById('diff-dialog'),
+    btnCloseDiff: document.getElementById('btn-close-diff'),
+    diffOriginal: document.getElementById('diff-original'),
+    diffModified: document.getElementById('diff-modified'),
+    btnRunDiff: document.getElementById('btn-run-diff'),
+    btnDiffSwap: document.getElementById('btn-diff-swap'),
+    btnDiffLoadEditor: document.getElementById('btn-diff-load-editor'),
+    btnDiffApplyEditor: document.getElementById('btn-diff-apply-editor'),
+    diffSummaryBadge: document.getElementById('diff-summary-badge'),
+    diffResultsContainer: document.getElementById('diff-results-container'),
+    diffOutputLines: document.getElementById('diff-output-lines'),
+
+    // Developer Utilities
+    btnUrlEncode: document.getElementById('btn-url-encode'),
+    btnUrlDecode: document.getElementById('btn-url-decode'),
+    btnB64Encode: document.getElementById('btn-b64-encode'),
+    btnB64Decode: document.getElementById('btn-b64-decode'),
+    btnJsonPrettify: document.getElementById('btn-json-prettify'),
+    btnJsonMinify: document.getElementById('btn-json-minify')
   };
 
   // --- INITIALIZATION ---
@@ -402,6 +440,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sync Editor Mode Visual displays
     updateEditorModeDisplay(null);
     
+    // Register Service Worker for offline capability & PWA
+    if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+      navigator.serviceWorker.register('./sw.js').catch(err => {
+        console.debug('Service Worker registration skipped or failed:', err);
+      });
+    }
+
     showToast('💡 Welcome to Editor Text!', 'success');
   }
 
@@ -1248,6 +1293,102 @@ document.addEventListener('DOMContentLoaded', () => {
     if (toastMsg) showToast(toastMsg, 'info');
   }
 
+  function runDevTool(tool) {
+    function transform(raw) {
+      if (tool === 'url-encode') {
+        return encodeURIComponent(raw);
+      }
+      if (tool === 'url-decode') {
+        return decodeURIComponent(raw);
+      }
+      if (tool === 'base64-encode') {
+        return btoa(unescape(encodeURIComponent(raw)));
+      }
+      if (tool === 'base64-decode') {
+        return decodeURIComponent(escape(atob(raw.trim())));
+      }
+      if (tool === 'json-prettify') {
+        const parsed = JSON.parse(raw);
+        return JSON.stringify(parsed, null, 2);
+      }
+      if (tool === 'json-minify') {
+        const parsed = JSON.parse(raw);
+        return JSON.stringify(parsed);
+      }
+      return raw;
+    }
+
+    function getToolToast(t) {
+      if (t === 'url-encode') return '🔗 URL Encoded';
+      if (t === 'url-decode') return '🔗 URL Decoded';
+      if (t === 'base64-encode') return '🔐 Base64 Encoded';
+      if (t === 'base64-decode') return '🔓 Base64 Decoded';
+      if (t === 'json-prettify') return '✨ JSON Formatted';
+      if (t === 'json-minify') return '📦 JSON Minified';
+      return null;
+    }
+
+    try {
+      if (state.editorMode === 'rich') {
+        if (el.richarea) el.richarea.focus();
+        const sel = window.getSelection();
+        const hasSelection = sel && sel.toString().length > 0;
+        if (hasSelection) {
+          const transformed = transform(sel.toString());
+          document.execCommand('insertText', false, transformed);
+        } else {
+          const raw = el.richarea.innerText || el.richarea.textContent || '';
+          if (!raw.trim()) {
+            showToast('⚠️ Document is empty', 'error');
+            return;
+          }
+          el.richarea.innerText = transform(raw);
+        }
+        runAnalytics();
+        updatePreviews();
+        saveSettings();
+        const msg = getToolToast(tool);
+        if (msg) showToast(msg, 'success');
+        return;
+      }
+
+      let start = el.textarea.selectionStart;
+      let end = el.textarea.selectionEnd;
+      if (document.activeElement !== el.textarea && savedTextareaStart !== undefined) {
+        start = savedTextareaStart;
+        end = savedTextareaEnd;
+      }
+      const val = el.textarea.value;
+      const isSelection = start !== end;
+      const targetText = isSelection ? val.substring(start, end) : val;
+
+      if (!targetText.trim()) {
+        showToast('⚠️ Text is empty', 'error');
+        return;
+      }
+
+      const transformed = transform(targetText);
+
+      if (isSelection) {
+        el.textarea.setRangeText(transformed, start, end, 'select');
+        el.textarea.focus();
+        el.textarea.setSelectionRange(start, start + transformed.length);
+        savedTextareaStart = start;
+        savedTextareaEnd = start + transformed.length;
+      } else {
+        el.textarea.value = transformed;
+        el.textarea.focus();
+      }
+
+      el.textarea.dispatchEvent(new Event('input'));
+      const msg = getToolToast(tool);
+      if (msg) showToast(msg, 'success');
+    } catch (err) {
+      console.error('Developer tool error:', err);
+      showToast(`❌ Error: ${err.message || 'Operation failed'}`, 'error');
+    }
+  }
+
   function varStyle(name) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   }
@@ -1823,6 +1964,295 @@ document.addEventListener('DOMContentLoaded', () => {
     navigator.clipboard.writeText(text)
       .then(() => showToast('📋 Content copied to clipboard!', 'success'))
       .catch(() => showToast('❌ Failed to copy to clipboard', 'error'));
+  }
+
+  // --- EXPORT DOCUMENT SUITE ---
+  function escapeHtml(str) {
+    return (str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function triggerDownload(content, filename, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function exportDocument(format) {
+    if (state.activeTab !== 'text') {
+      showToast('⚠️ Document export is only for text documents', 'error');
+      return;
+    }
+
+    const baseName = state.filename || 'document';
+    let textContent = el.textarea.value;
+    if (state.whitespaceVisible) {
+      textContent = cleanWhitespaceDisplay(textContent);
+    }
+    const htmlContent = state.editorMode === 'rich' ? (el.richarea.innerHTML || '') : `<pre>${escapeHtml(textContent)}</pre>`;
+    const rawText = state.editorMode === 'rich' ? (el.richarea.innerText || el.richarea.textContent || '') : textContent;
+
+    if (format === 'txt') {
+      triggerDownload(rawText, `${baseName}.txt`, 'text/plain;charset=utf-8');
+      showToast(`💾 Exported ${baseName}.txt`, 'success');
+    } else if (format === 'md') {
+      triggerDownload(rawText, `${baseName}.md`, 'text/markdown;charset=utf-8');
+      showToast(`📝 Exported ${baseName}.md`, 'success');
+    } else if (format === 'html') {
+      const fullHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(baseName)}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #1f2937; background: #ffffff; }
+    h1 { border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; }
+    pre { background: #f3f4f6; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: monospace; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>${escapeHtml(baseName)}</h1>
+  <div class="content">
+    ${state.editorMode === 'rich' ? htmlContent : `<pre>${escapeHtml(rawText)}</pre>`}
+  </div>
+</body>
+</html>`;
+      triggerDownload(fullHtml, `${baseName}.html`, 'text/html;charset=utf-8');
+      showToast(`🌐 Exported ${baseName}.html`, 'success');
+    } else if (format === 'doc') {
+      const docHtml = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+  <meta charset='utf-8'>
+  <title>${escapeHtml(baseName)}</title>
+  <style>
+    body { font-family: 'Calibri', 'Arial', sans-serif; font-size: 11pt; line-height: 1.5; margin: 1in; }
+    h1 { font-size: 18pt; color: #1e3a8a; }
+  </style>
+</head>
+<body>
+  <h1>${escapeHtml(baseName)}</h1>
+  ${state.editorMode === 'rich' ? htmlContent : `<pre style="font-family: Calibri, sans-serif; white-space: pre-wrap;">${escapeHtml(rawText)}</pre>`}
+</body>
+</html>`;
+      triggerDownload(docHtml, `${baseName}.doc`, 'application/msword;charset=utf-8');
+      showToast(`📄 Exported ${baseName}.doc (Word)`, 'success');
+    } else if (format === 'pdf') {
+      window.print();
+    }
+  }
+
+  // --- TEXT-TO-SPEECH (READ ALOUD) ---
+  function toggleSpeechSynthesis() {
+    if (!('speechSynthesis' in window)) {
+      showToast('⚠️ Speech synthesis is not supported in this browser', 'error');
+      return;
+    }
+
+    if (window.speechSynthesis.speaking || isSpeaking) {
+      window.speechSynthesis.cancel();
+      isSpeaking = false;
+      if (el.btnToolbarTts) {
+        el.btnToolbarTts.classList.remove('speaking');
+        el.btnToolbarTts.setAttribute('title', 'Read aloud (Text-to-Speech)');
+        el.btnToolbarTts.setAttribute('aria-label', 'Read aloud (Text-to-Speech)');
+      }
+      showToast('⏹️ Speech stopped', 'info');
+      return;
+    }
+
+    let textToRead = '';
+    if (state.editorMode === 'rich') {
+      const sel = window.getSelection();
+      if (sel && sel.toString().trim()) {
+        textToRead = sel.toString().trim();
+      } else if (el.richarea) {
+        textToRead = (el.richarea.innerText || el.richarea.textContent || '').trim();
+      }
+    } else if (el.textarea) {
+      const start = el.textarea.selectionStart;
+      const end = el.textarea.selectionEnd;
+      if (start !== end) {
+        textToRead = el.textarea.value.substring(start, end).trim();
+      } else {
+        textToRead = el.textarea.value.trim();
+      }
+    }
+
+    if (!textToRead) {
+      showToast('⚠️ Document is empty', 'error');
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    speechUtterance = new SpeechSynthesisUtterance(textToRead);
+    speechUtterance.rate = 1.0;
+    speechUtterance.pitch = 1.0;
+
+    speechUtterance.onstart = () => {
+      isSpeaking = true;
+      if (el.btnToolbarTts) {
+        el.btnToolbarTts.classList.add('speaking');
+        el.btnToolbarTts.setAttribute('title', 'Stop reading aloud');
+        el.btnToolbarTts.setAttribute('aria-label', 'Stop reading aloud');
+      }
+    };
+
+    const cleanupSpeaking = () => {
+      isSpeaking = false;
+      if (el.btnToolbarTts) {
+        el.btnToolbarTts.classList.remove('speaking');
+        el.btnToolbarTts.setAttribute('title', 'Read aloud (Text-to-Speech)');
+        el.btnToolbarTts.setAttribute('aria-label', 'Read aloud (Text-to-Speech)');
+      }
+    };
+
+    speechUtterance.onend = cleanupSpeaking;
+    speechUtterance.onerror = cleanupSpeaking;
+
+    window.speechSynthesis.speak(speechUtterance);
+    showToast('🔊 Reading document aloud...', 'info');
+  }
+
+  // --- DIFF / TEXT COMPARISON TOOL ---
+  function openDiffDialog() {
+    if (!el.diffDialog) return;
+    if (el.diffOriginal && !el.diffOriginal.value) {
+      let currentText = state.editorMode === 'rich' ? (el.richarea.innerText || el.richarea.textContent || '') : el.textarea.value;
+      if (state.whitespaceVisible) currentText = cleanWhitespaceDisplay(currentText);
+      el.diffOriginal.value = currentText;
+    }
+    el.diffDialog.showModal();
+    if (el.diffModified) el.diffModified.focus();
+  }
+
+  function swapDiffTexts() {
+    if (!el.diffOriginal || !el.diffModified) return;
+    const temp = el.diffOriginal.value;
+    el.diffOriginal.value = el.diffModified.value;
+    el.diffModified.value = temp;
+    if (el.diffResultsContainer && !el.diffResultsContainer.classList.contains('hidden')) {
+      runDiffComparison();
+    }
+    showToast('🔄 Swapped original and modified texts', 'info');
+  }
+
+  function loadEditorIntoDiff() {
+    if (!el.diffOriginal) return;
+    let currentText = state.editorMode === 'rich' ? (el.richarea.innerText || el.richarea.textContent || '') : el.textarea.value;
+    if (state.whitespaceVisible) currentText = cleanWhitespaceDisplay(currentText);
+    el.diffOriginal.value = currentText;
+    showToast('📥 Loaded current document into Original', 'info');
+  }
+
+  function applyDiffToEditor() {
+    if (!el.diffModified) return;
+    const newText = el.diffModified.value;
+    if (state.editorMode === 'rich') {
+      if (el.richarea) el.richarea.innerText = newText;
+    } else if (el.textarea) {
+      el.textarea.value = newText;
+      el.textarea.dispatchEvent(new Event('input'));
+    }
+    runAnalytics();
+    updatePreviews();
+    saveSettings();
+    if (el.diffDialog) el.diffDialog.close();
+    showToast('✅ Applied modified text to document!', 'success');
+  }
+
+  function computeLineDiff(text1, text2) {
+    const lines1 = text1 === '' ? [] : text1.split('\n');
+    const lines2 = text2 === '' ? [] : text2.split('\n');
+    const MAX_LINES = 1200;
+    const s1 = lines1.slice(0, MAX_LINES);
+    const s2 = lines2.slice(0, MAX_LINES);
+    const len1 = s1.length;
+    const len2 = s2.length;
+
+    const dp = Array.from({ length: len1 + 1 }, () => new Uint16Array(len2 + 1));
+    for (let i = 0; i < len1; i++) {
+      for (let j = 0; j < len2; j++) {
+        if (s1[i] === s2[j]) {
+          dp[i + 1][j + 1] = dp[i][j] + 1;
+        } else {
+          dp[i + 1][j + 1] = Math.max(dp[i + 1][j], dp[i][j + 1]);
+        }
+      }
+    }
+
+    const diff = [];
+    let i = len1, j = len2;
+    while (i > 0 || j > 0) {
+      if (i > 0 && j > 0 && s1[i - 1] === s2[j - 1]) {
+        diff.unshift({ type: 'eq', text: s1[i - 1] });
+        i--;
+        j--;
+      } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+        diff.unshift({ type: 'add', text: s2[j - 1] });
+        j--;
+      } else if (i > 0 && (j === 0 || dp[i][j - 1] < dp[i - 1][j])) {
+        diff.unshift({ type: 'del', text: s1[i - 1] });
+        i--;
+      }
+    }
+    return diff;
+  }
+
+  function runDiffComparison() {
+    if (!el.diffOriginal || !el.diffModified || !el.diffOutputLines) return;
+    const text1 = el.diffOriginal.value;
+    const text2 = el.diffModified.value;
+
+    const diff = computeLineDiff(text1, text2);
+
+    let adds = 0;
+    let dels = 0;
+    let eqs = 0;
+
+    el.diffOutputLines.innerHTML = '';
+    const fragment = document.createDocumentFragment();
+
+    diff.forEach((item) => {
+      const lineEl = document.createElement('div');
+      lineEl.className = `diff-line diff-${item.type}`;
+
+      const sign = item.type === 'add' ? '+' : (item.type === 'del' ? '-' : ' ');
+      if (item.type === 'add') adds++;
+      else if (item.type === 'del') dels++;
+      else eqs++;
+
+      const signSpan = document.createElement('span');
+      signSpan.className = 'diff-sign';
+      signSpan.textContent = sign;
+
+      const contentSpan = document.createElement('span');
+      contentSpan.className = 'diff-text';
+      contentSpan.textContent = item.text || ' ';
+
+      lineEl.appendChild(signSpan);
+      lineEl.appendChild(contentSpan);
+      fragment.appendChild(lineEl);
+    });
+
+    el.diffOutputLines.appendChild(fragment);
+    if (el.diffResultsContainer) el.diffResultsContainer.classList.remove('hidden');
+
+    if (el.diffSummaryBadge) {
+      el.diffSummaryBadge.classList.remove('hidden');
+      el.diffSummaryBadge.innerHTML = `<span style="color: #10b981; font-weight: 600;">+${adds} added</span> &bull; <span style="color: #ef4444; font-weight: 600;">-${dels} removed</span> &bull; <span style="color: var(--text-secondary);">${eqs} unchanged</span>`;
+    }
+    showToast(`🔍 Compared: +${adds} -${dels}`, 'info');
   }
 
   // --- PHOTO EDITOR ENGINE ---
@@ -2410,7 +2840,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     };
-    [el.btnBold, el.btnItalic, el.btnUnderline, el.btnStrike, el.btnH1, el.btnH2, el.btnLink, el.btnUpper, el.btnLower, el.btnTitle, el.btnSortLines, el.btnDedupeLines, el.btnTrimSpaces].forEach(preventFocusLoss);
+    [el.btnBold, el.btnItalic, el.btnUnderline, el.btnStrike, el.btnH1, el.btnH2, el.btnLink, el.btnUpper, el.btnLower, el.btnTitle, el.btnSortLines, el.btnDedupeLines, el.btnTrimSpaces, el.btnUrlEncode, el.btnUrlDecode, el.btnB64Encode, el.btnB64Decode, el.btnJsonPrettify, el.btnJsonMinify].filter(Boolean).forEach(preventFocusLoss);
 
     // Track selection changes inside the raw textarea
     const saveTextareaSelection = () => {
@@ -2578,6 +3008,63 @@ document.addEventListener('DOMContentLoaded', () => {
       el.btnTrimSpaces.addEventListener('click', () => {
         changeCase('trim');
         closeAllPopovers();
+      });
+    }
+
+    // Developer Utilities click listeners
+    if (el.btnUrlEncode) el.btnUrlEncode.addEventListener('click', () => { runDevTool('url-encode'); closeAllPopovers(); });
+    if (el.btnUrlDecode) el.btnUrlDecode.addEventListener('click', () => { runDevTool('url-decode'); closeAllPopovers(); });
+    if (el.btnB64Encode) el.btnB64Encode.addEventListener('click', () => { runDevTool('base64-encode'); closeAllPopovers(); });
+    if (el.btnB64Decode) el.btnB64Decode.addEventListener('click', () => { runDevTool('base64-decode'); closeAllPopovers(); });
+    if (el.btnJsonPrettify) el.btnJsonPrettify.addEventListener('click', () => { runDevTool('json-prettify'); closeAllPopovers(); });
+    if (el.btnJsonMinify) el.btnJsonMinify.addEventListener('click', () => { runDevTool('json-minify'); closeAllPopovers(); });
+
+    // Export Document click listeners
+    if (el.btnExportTxt) el.btnExportTxt.addEventListener('click', () => { exportDocument('txt'); closeAllPopovers(); });
+    if (el.btnExportMd) el.btnExportMd.addEventListener('click', () => { exportDocument('md'); closeAllPopovers(); });
+    if (el.btnExportHtml) el.btnExportHtml.addEventListener('click', () => { exportDocument('html'); closeAllPopovers(); });
+    if (el.btnExportDoc) el.btnExportDoc.addEventListener('click', () => { exportDocument('doc'); closeAllPopovers(); });
+    if (el.btnExportPdf) el.btnExportPdf.addEventListener('click', () => { exportDocument('pdf'); closeAllPopovers(); });
+
+    // TTS & Diff listeners
+    if (el.btnToolbarTts) el.btnToolbarTts.addEventListener('click', toggleSpeechSynthesis);
+    if (el.btnToolbarDiff) el.btnToolbarDiff.addEventListener('click', openDiffDialog);
+    if (el.btnCloseDiff) el.btnCloseDiff.addEventListener('click', () => el.diffDialog.close());
+    if (el.btnRunDiff) el.btnRunDiff.addEventListener('click', runDiffComparison);
+    if (el.btnDiffSwap) el.btnDiffSwap.addEventListener('click', swapDiffTexts);
+    if (el.btnDiffLoadEditor) el.btnDiffLoadEditor.addEventListener('click', loadEditorIntoDiff);
+    if (el.btnDiffApplyEditor) el.btnDiffApplyEditor.addEventListener('click', applyDiffToEditor);
+
+    // Install PWA Prompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      if (el.btnInstallPwa) {
+        el.btnInstallPwa.classList.remove('hidden');
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      if (el.btnInstallPwa) {
+        el.btnInstallPwa.classList.add('hidden');
+      }
+      showToast('🎉 Editor Text was successfully installed!', 'success');
+    });
+
+    if (el.btnInstallPwa) {
+      el.btnInstallPwa.addEventListener('click', async () => {
+        if (deferredInstallPrompt) {
+          deferredInstallPrompt.prompt();
+          const choiceResult = await deferredInstallPrompt.userChoice;
+          if (choiceResult && choiceResult.outcome === 'accepted') {
+            showToast('🎉 App install initiated!', 'success');
+          }
+          deferredInstallPrompt = null;
+          el.btnInstallPwa.classList.add('hidden');
+        } else {
+          showToast('📱 To install, tap your browser menu and choose "Install app" or "Add to Home Screen"', 'info');
+        }
       });
     }
     if (el.btnToolbarZen) {
@@ -3168,12 +3655,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- POPOVER MANAGEMENT LOGIC ---
     const popovers = {
       more: document.getElementById('popover-more'),
-      theme: document.getElementById('popover-theme')
+      theme: document.getElementById('popover-theme'),
+      export: document.getElementById('popover-export')
     };
 
     const popoverTriggers = {
       more: document.getElementById('btn-toolbar-more'),
-      theme: document.getElementById('btn-toolbar-theme')
+      theme: document.getElementById('btn-toolbar-theme'),
+      export: document.getElementById('btn-export-menu')
     };
 
     function positionPopover(name) {
@@ -3252,6 +3741,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (popoverTriggers.more) popoverTriggers.more.addEventListener('click', (e) => { e.stopPropagation(); togglePopover('more'); });
     if (popoverTriggers.theme) popoverTriggers.theme.addEventListener('click', (e) => { e.stopPropagation(); togglePopover('theme'); });
+    if (popoverTriggers.export) popoverTriggers.export.addEventListener('click', (e) => { e.stopPropagation(); togglePopover('export'); });
 
     // Stop propagation inside popovers to allow clicks inside select controls
     Object.keys(popovers).forEach(key => {
@@ -3562,7 +4052,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     };
-    [el.infoDialog, el.shortcutsDialog, el.commandPaletteDialog, el.settingsDialog].filter(Boolean).forEach(registerModalEvents);
+    [el.infoDialog, el.shortcutsDialog, el.commandPaletteDialog, el.settingsDialog, el.diffDialog].filter(Boolean).forEach(registerModalEvents);
 
     // Keyboard Hotkeys
     window.addEventListener('keydown', (e) => {
@@ -3739,7 +4229,19 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'Toggle Word Wrap', shortcut: 'Alt-W', action: () => { cycleWordWrap(); } },
     { name: 'Toggle Line Numbers', shortcut: 'Alt-L', action: () => { el.btnToolbarLines.click(); } },
     { name: 'Toggle Split HTML Preview', shortcut: 'Alt-V', action: () => { el.btnSplitToggle.click(); } },
-    { name: 'Find and Replace', shortcut: 'Ctrl-F', action: () => { el.btnFindReplaceToggle.click(); } },
+    { name: 'Read Aloud (Text-to-Speech)', shortcut: '', action: () => { toggleSpeechSynthesis(); } },
+    { name: 'Diff / Compare Texts', shortcut: '', action: () => { openDiffDialog(); } },
+    { name: 'Export: Plain Text (.txt)', shortcut: '', action: () => { exportDocument('txt'); } },
+    { name: 'Export: Markdown (.md)', shortcut: '', action: () => { exportDocument('md'); } },
+    { name: 'Export: HTML Document (.html)', shortcut: '', action: () => { exportDocument('html'); } },
+    { name: 'Export: Word Document (.doc)', shortcut: '', action: () => { exportDocument('doc'); } },
+    { name: 'Dev: URL Encode', shortcut: '', action: () => { runDevTool('url-encode'); } },
+    { name: 'Dev: URL Decode', shortcut: '', action: () => { runDevTool('url-decode'); } },
+    { name: 'Dev: Base64 Encode', shortcut: '', action: () => { runDevTool('base64-encode'); } },
+    { name: 'Dev: Base64 Decode', shortcut: '', action: () => { runDevTool('base64-decode'); } },
+    { name: 'Dev: Prettify JSON', shortcut: '', action: () => { runDevTool('json-prettify'); } },
+    { name: 'Dev: Minify JSON', shortcut: '', action: () => { runDevTool('json-minify'); } },
+    { name: 'Install App (PWA)', shortcut: '', action: () => { if (el.btnInstallPwa) el.btnInstallPwa.click(); } },
     { name: 'Photo: Vintage Preset', shortcut: '', action: () => { switchTab('photo'); applyPhotoPreset('vintage'); } },
     { name: 'Photo: Vivid Pop Preset', shortcut: '', action: () => { switchTab('photo'); applyPhotoPreset('vivid'); } },
     { name: 'Photo: Noir B&W Preset', shortcut: '', action: () => { switchTab('photo'); applyPhotoPreset('noir'); } },

@@ -1,0 +1,20 @@
+{
+  "name": "Editor Text - Free Online Text & Photo Editor",
+  "short_name": "Editor Text",
+  "description": "Free, privacy-first text editor, markdown notepad, and photo editor that works 100% locally in your browser.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0a0f",
+  "theme_color": "#0a0a0f",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "images/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
