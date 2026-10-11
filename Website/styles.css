@@ -4638,5 +4638,25 @@ body.zen-mode .zen-exit-btn:hover {
   }
 }
 
-
-
+/* Desktop: keep the whole formatting toolbar on a single line (scrolls if narrow) */
+@media (min-width: 769px) {
+  .formatting-toolbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .formatting-toolbar::-webkit-scrollbar { display: none; }
+  .formatting-toolbar .toolbar-group,
+  .formatting-toolbar .toolbar-divider,
+  .formatting-toolbar .toolbar-select-container { flex-shrink: 0; }
+  /* Fixed popovers so the scrolling toolbar doesn't clip them */
+  .toolbar-popover {
+    position: fixed;
+    top: 25%;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+  }
+  .toolbar-popover:not(.hidden),
+  .toolbar-group:last-child .toolbar-popover:not(.hidden) { transform: translateX(-50%) translateY(0); }
+  .toolbar-group:last-child .toolbar-popover { left: 50%; right: auto; }
+}
