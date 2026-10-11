@@ -191,6 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
     tabText: document.getElementById('tab-text'),
     tabPreview: document.getElementById('tab-preview'),
     tabPhoto: document.getElementById('tab-photo'),
+    mobileTabText: document.getElementById('mobile-tab-text'),
+    mobileTabPhoto: document.getElementById('mobile-tab-photo'),
     textWorkspace: document.getElementById('text-workspace'),
     previewWorkspace: document.getElementById('preview-workspace'),
     photoWorkspace: document.getElementById('photo-workspace'),
@@ -217,6 +219,8 @@ document.addEventListener('DOMContentLoaded', () => {
     resumeDraftBanner: document.getElementById('resume-draft-banner'),
     resumeDraftFilename: document.getElementById('resume-draft-filename'),
     resumeDraftMeta: document.getElementById('resume-draft-meta'),
+    resumeDraftWords: document.getElementById('resume-draft-words'),
+    resumeDraftTime: document.getElementById('resume-draft-time'),
     btnResumeDraft: document.getElementById('btn-resume-draft'),
     btnViewRecentsBanner: document.getElementById('btn-view-recents-banner'),
     btnDismissDraftBanner: document.getElementById('btn-dismiss-draft-banner'),
@@ -725,12 +729,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     el.tabText.classList.remove('active');
     el.tabText.setAttribute('aria-selected', 'false');
+    if (el.mobileTabText) {
+      el.mobileTabText.classList.remove('active');
+      el.mobileTabText.setAttribute('aria-selected', 'false');
+    }
     if (el.tabPreview) {
       el.tabPreview.classList.remove('active');
       el.tabPreview.setAttribute('aria-selected', 'false');
     }
     el.tabPhoto.classList.remove('active');
     el.tabPhoto.setAttribute('aria-selected', 'false');
+    if (el.mobileTabPhoto) {
+      el.mobileTabPhoto.classList.remove('active');
+      el.mobileTabPhoto.setAttribute('aria-selected', 'false');
+    }
 
     el.textWorkspace.classList.add('hidden');
     el.textSidebar.classList.add('hidden');
@@ -743,6 +755,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tabId === 'text') {
       el.tabText.classList.add('active');
       el.tabText.setAttribute('aria-selected', 'true');
+      if (el.mobileTabText) {
+        el.mobileTabText.classList.add('active');
+        el.mobileTabText.setAttribute('aria-selected', 'true');
+      }
       el.textWorkspace.classList.remove('hidden');
       el.textSidebar.classList.remove('hidden');
       if (appSidebar) appSidebar.classList.remove('hidden');
@@ -763,6 +779,10 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       el.tabPhoto.classList.add('active');
       el.tabPhoto.setAttribute('aria-selected', 'true');
+      if (el.mobileTabPhoto) {
+        el.mobileTabPhoto.classList.add('active');
+        el.mobileTabPhoto.setAttribute('aria-selected', 'true');
+      }
       el.photoWorkspace.classList.remove('hidden');
       el.photoSidebar.classList.remove('hidden');
       if (appSidebar) appSidebar.classList.remove('hidden');
@@ -2159,7 +2179,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const draft = docs[0];
       const timeAgo = formatTimeAgo(draft.timestamp);
       if (el.resumeDraftFilename) el.resumeDraftFilename.textContent = `${draft.name}${draft.ext}`;
-      if (el.resumeDraftMeta) el.resumeDraftMeta.textContent = `• ${draft.words.toLocaleString()} words • edited ${timeAgo}`;
+      if (el.resumeDraftWords) el.resumeDraftWords.textContent = `• ${draft.words.toLocaleString()} words`;
+      if (el.resumeDraftTime) el.resumeDraftTime.textContent = ` • edited ${timeAgo}`;
+      if (el.resumeDraftMeta && !el.resumeDraftWords) el.resumeDraftMeta.textContent = `• ${draft.words.toLocaleString()} words • edited ${timeAgo}`;
       el.resumeDraftBanner.classList.remove('hidden');
     } else {
       el.resumeDraftBanner.classList.add('hidden');
@@ -3513,10 +3535,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Tab toggles
     el.tabText.addEventListener('click', () => switchTab('text'));
+    if (el.mobileTabText) el.mobileTabText.addEventListener('click', () => switchTab('text'));
     if (el.tabPreview) {
       el.tabPreview.addEventListener('click', () => switchTab('preview'));
     }
     el.tabPhoto.addEventListener('click', () => switchTab('photo'));
+    if (el.mobileTabPhoto) el.mobileTabPhoto.addEventListener('click', () => switchTab('photo'));
 
     if (el.btnFullscreenPreview) {
       el.btnFullscreenPreview.addEventListener('click', () => {
