@@ -83,6 +83,12 @@
   <!-- Screen Reader Hidden SEO Heading -->
   <h1 class="sr-only">Editor Text - Free Online Text Editor and Photo Editor App</h1>
 
+  <!-- Zen Mode Floating Exit Button -->
+  <button class="zen-exit-btn" id="btn-zen-exit" aria-label="Exit Zen Writing Mode">
+    <span class="material-symbols-outlined">fullscreen_exit</span>
+    <span>Exit Zen Mode</span>
+  </button>
+
   <div id="app-container">
     
     <!-- HEADER -->
@@ -137,10 +143,16 @@
           <span class="material-symbols-outlined theme-select-icon">palette</span>
           <label for="theme-selector" class="sr-only">Change Theme</label>
           <select id="theme-selector" class="theme-select" aria-label="Change Theme">
-            <option value="light" selected>Light Clean</option>
+            <option value="light">Light Clean</option>
             <option value="dark">Dark Space</option>
             <option value="cyberpunk">Cyberpunk</option>
             <option value="forest">Forest</option>
+            <option value="dracula">Dracula</option>
+            <option value="monokai">Monokai</option>
+            <option value="nord">Nord Frost</option>
+            <option value="solarized">Solarized Dark</option>
+            <option value="rose-pine">Rosé Pine</option>
+            <option value="sepia">Sepia Paper</option>
           </select>
         </div>
 
@@ -349,6 +361,9 @@
           
           <!-- Utilities (Right aligned) -->
           <div class="toolbar-group" style="margin-left: auto;">
+            <button class="tool-btn" id="btn-toolbar-zen" title="Zen Writing Mode (Distraction-Free)" aria-label="Toggle Zen Writing Mode">
+              <span class="material-symbols-outlined">fullscreen</span>
+            </button>
             <button class="tool-btn" id="btn-toolbar-shortcuts" title="Keyboard Shortcuts (Ctrl+/)" aria-label="View Keyboard Shortcuts (Ctrl+/)">
               <span class="material-symbols-outlined">keyboard</span>
             </button>
@@ -405,7 +420,7 @@
             </div>
 
             <!-- SEO Semantic Section -->
-            <section class="welcome-about-seo" aria-label="About Editor Text" style="margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--border-color); text-align: left;">
+            <article class="welcome-about-seo" aria-label="About Editor Text" style="margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--border-color); text-align: left;">
               <h3 style="font-size: 1.05rem; color: var(--text-primary); margin-bottom: var(--space-1); font-weight: 600;">Fast, Private &amp; Modern Online Text Editor</h3>
               <p style="margin-bottom: var(--space-1); color: var(--text-secondary); line-height: 1.6; font-size: 0.88rem;">
                 <strong>Editor Text</strong> is a free, modern online text editor and document creation tool built for speed, privacy, and simplicity. You can create, open, edit, format, and download text files directly in your web browser. There is no need to install heavy software, and your files never leave your device.
@@ -413,7 +428,17 @@
               <p style="color: var(--text-secondary); line-height: 1.6; font-size: 0.88rem;">
                 Features include real-time word counting, reading time analytics, syntax styling helper, live preview, customizable word wrap modes, and themes. Whether you're drafting quick notes, writing code, or formatting Markdown, Editor Text provides a clean, responsive interface to keep your focus on your text.
               </p>
-            </section>
+              <details style="margin-top: var(--space-2); cursor: pointer; color: var(--text-secondary); font-size: 0.85rem;">
+                <summary style="font-weight: 600; color: var(--text-primary); outline: none;">⚡ Quick Tips &amp; Keyboard Shortcuts</summary>
+                <ul style="margin-top: var(--space-1); margin-left: var(--space-3); line-height: 1.6;">
+                  <li><strong>Ctrl + S</strong> : Save &amp; download file</li>
+                  <li><strong>Ctrl + F</strong> : Search and replace</li>
+                  <li><strong>Ctrl + ,</strong> : Open editor settings</li>
+                  <li><strong>Esc</strong> : Exit Zen Mode</li>
+                  <li><strong>10 Themes</strong> : Switch themes easily via the top-right menu or Command Palette</li>
+                </ul>
+              </details>
+            </article>
           </div>
         </div>
 
@@ -480,8 +505,8 @@
         </div>
 
         <!-- Popovers extracted from toolbar to prevent horizontal scroll clipping on mobile -->
-        <div class="toolbar-popover hidden" id="popover-more" role="menu" aria-label="Case conversion options" style="width: 160px;">
-          <div class="popover-header">Case Conversions</div>
+        <div class="toolbar-popover hidden" id="popover-more" role="menu" aria-label="Text tools and case conversions" style="width: 200px;">
+          <div class="popover-header">Case &amp; Text Tools</div>
           <div class="popover-section">
             <button class="popover-item" id="btn-upper" role="menuitem" title="Convert selected to Uppercase" aria-label="Convert selection to Uppercase">
               <span style="font-weight: bold; font-size: 0.8rem; padding: 2px 4px;">AA</span>
@@ -495,11 +520,24 @@
               <span style="font-weight: bold; font-size: 0.8rem; padding: 2px 4px;">Aa</span>
               <span>Title Case</span>
             </button>
+            <div style="border-top: 1px solid var(--border-color); margin: 4px 0;"></div>
+            <button class="popover-item" id="btn-sort-lines" role="menuitem" title="Sort lines alphabetically" aria-label="Sort lines alphabetically">
+              <span class="material-symbols-outlined" style="font-size: 1rem;">sort_by_alpha</span>
+              <span>Sort Lines (A-Z)</span>
+            </button>
+            <button class="popover-item" id="btn-dedupe-lines" role="menuitem" title="Remove duplicate lines" aria-label="Remove duplicate lines">
+              <span class="material-symbols-outlined" style="font-size: 1rem;">content_copy</span>
+              <span>Remove Duplicates</span>
+            </button>
+            <button class="popover-item" id="btn-trim-spaces" role="menuitem" title="Trim trailing whitespace from lines" aria-label="Trim trailing whitespace">
+              <span class="material-symbols-outlined" style="font-size: 1rem;">space_bar</span>
+              <span>Trim Trailing Spaces</span>
+            </button>
           </div>
         </div>
 
-        <div class="toolbar-popover hidden" id="popover-theme" role="region" aria-label="App theme selection" style="width: 224px;">
-          <div class="popover-header">Select App Theme</div>
+        <div class="toolbar-popover hidden" id="popover-theme" role="region" aria-label="App theme selection" style="width: 240px; max-height: 400px; overflow-y: auto;">
+          <div class="popover-header">Select App Theme (10 Themes)</div>
           <div class="popover-body-content" style="padding: var(--space-2); display: flex; flex-direction: column; gap: var(--space-1); text-align: left;">
             <div class="theme-card-option" data-theme-val="light" role="button" tabindex="0" aria-label="Select Light Clean theme" style="padding: var(--space-1) var(--space-2); border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #ffffff; color: #1f2937;">
               <span style="font-weight: 600; font-size: 0.85rem;">Light Clean</span>
@@ -516,6 +554,30 @@
             <div class="theme-card-option" data-theme-val="forest" role="button" tabindex="0" aria-label="Select Forest theme" style="padding: var(--space-1) var(--space-2); border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #0f1c15; color: #ecfdf5;">
               <span style="font-weight: 600; font-size: 0.85rem;">Forest</span>
               <span style="width: 16px; height: 16px; border-radius: 50%; background: #10b981;"></span>
+            </div>
+            <div class="theme-card-option" data-theme-val="dracula" role="button" tabindex="0" aria-label="Select Dracula theme" style="padding: var(--space-1) var(--space-2); border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #282a36; color: #f8f8f2;">
+              <span style="font-weight: 600; font-size: 0.85rem;">Dracula</span>
+              <span style="width: 16px; height: 16px; border-radius: 50%; background: #bd93f9;"></span>
+            </div>
+            <div class="theme-card-option" data-theme-val="monokai" role="button" tabindex="0" aria-label="Select Monokai theme" style="padding: var(--space-1) var(--space-2); border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #272822; color: #f8f8f2;">
+              <span style="font-weight: 600; font-size: 0.85rem;">Monokai</span>
+              <span style="width: 16px; height: 16px; border-radius: 50%; background: #a6e22e;"></span>
+            </div>
+            <div class="theme-card-option" data-theme-val="nord" role="button" tabindex="0" aria-label="Select Nord Frost theme" style="padding: var(--space-1) var(--space-2); border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #2e3440; color: #eceff4;">
+              <span style="font-weight: 600; font-size: 0.85rem;">Nord Frost</span>
+              <span style="width: 16px; height: 16px; border-radius: 50%; background: #88c0d0;"></span>
+            </div>
+            <div class="theme-card-option" data-theme-val="solarized" role="button" tabindex="0" aria-label="Select Solarized Dark theme" style="padding: var(--space-1) var(--space-2); border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #002b36; color: #93a1a1;">
+              <span style="font-weight: 600; font-size: 0.85rem;">Solarized Dark</span>
+              <span style="width: 16px; height: 16px; border-radius: 50%; background: #2aa198;"></span>
+            </div>
+            <div class="theme-card-option" data-theme-val="rose-pine" role="button" tabindex="0" aria-label="Select Rosé Pine theme" style="padding: var(--space-1) var(--space-2); border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #191724; color: #e0def4;">
+              <span style="font-weight: 600; font-size: 0.85rem;">Rosé Pine</span>
+              <span style="width: 16px; height: 16px; border-radius: 50%; background: #ebbcba;"></span>
+            </div>
+            <div class="theme-card-option" data-theme-val="sepia" role="button" tabindex="0" aria-label="Select Sepia Paper theme" style="padding: var(--space-1) var(--space-2); border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #fbf0d9; color: #433422;">
+              <span style="font-weight: 600; font-size: 0.85rem;">Sepia Paper</span>
+              <span style="width: 16px; height: 16px; border-radius: 50%; background: #c2593f;"></span>
             </div>
           </div>
         </div>
@@ -647,6 +709,20 @@
                 <span class="material-symbols-outlined">delete</span>
                 <span>Delete</span>
               </button>
+            </div>
+          <!-- Filter Presets -->
+          <div class="sidebar-section">
+            <h2 class="sidebar-title">
+              <span class="material-symbols-outlined">auto_fix_high</span>
+              Quick Presets
+            </h2>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
+              <button class="btn photo-preset-btn" data-preset="original" style="padding: 4px 8px; font-size: 0.75rem;" aria-label="Original preset">Original</button>
+              <button class="btn photo-preset-btn" data-preset="vintage" style="padding: 4px 8px; font-size: 0.75rem;" aria-label="Vintage preset">Vintage</button>
+              <button class="btn photo-preset-btn" data-preset="vivid" style="padding: 4px 8px; font-size: 0.75rem;" aria-label="Vivid preset">Vivid Pop</button>
+              <button class="btn photo-preset-btn" data-preset="noir" style="padding: 4px 8px; font-size: 0.75rem;" aria-label="Noir B&W preset">Noir B&W</button>
+              <button class="btn photo-preset-btn" data-preset="cyberpunk" style="padding: 4px 8px; font-size: 0.75rem;" aria-label="Cyberpunk preset">Cyberpunk</button>
+              <button class="btn photo-preset-btn" data-preset="warm" style="padding: 4px 8px; font-size: 0.75rem;" aria-label="Warm Sun preset">Warm Sun</button>
             </div>
           </div>
 
@@ -888,10 +964,16 @@
       <div class="settings-row">
         <label for="settings-theme" class="settings-label">Theme</label>
         <select id="settings-theme" class="settings-select">
-          <option value="light">Chrome (Light)</option>
-          <option value="dark">Cobalt (Dark)</option>
-          <option value="cyberpunk">Chaos (Cyberpunk)</option>
-          <option value="forest">Terminal (Forest)</option>
+          <option value="light">Light Clean</option>
+          <option value="dark">Dark Space</option>
+          <option value="cyberpunk">Cyberpunk</option>
+          <option value="forest">Forest</option>
+          <option value="dracula">Dracula</option>
+          <option value="monokai">Monokai</option>
+          <option value="nord">Nord Frost</option>
+          <option value="solarized">Solarized Dark</option>
+          <option value="rose-pine">Rosé Pine</option>
+          <option value="sepia">Sepia Paper</option>
         </select>
       </div>
 

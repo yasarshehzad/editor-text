@@ -118,6 +118,120 @@
       --panel-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
     }
 
+    [data-theme="dracula"] {
+      color-scheme: dark;
+      --bg-primary: #1e1f29;
+      --bg-secondary: #282a36;
+      --bg-tertiary: #343746;
+      --bg-glass: rgba(40, 42, 54, 0.75);
+      --border-color: rgba(98, 114, 164, 0.28);
+      --text-primary: #f8f8f2;
+      --text-secondary: #6272a4;
+      --accent-color: #bd93f9;
+      --accent-rgb: 189, 147, 249;
+      --accent-hover: #ff79c6;
+      --glow-color: rgba(189, 147, 249, 0.35);
+      --scrollbar-thumb: #44475a;
+      --danger-color: #ff5555;
+      --success-color: #50fa7b;
+      --panel-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    }
+
+    [data-theme="monokai"] {
+      color-scheme: dark;
+      --bg-primary: #19181a;
+      --bg-secondary: #221f22;
+      --bg-tertiary: #2d2a2e;
+      --bg-glass: rgba(34, 31, 34, 0.75);
+      --border-color: rgba(255, 216, 102, 0.2);
+      --text-primary: #fcfcfa;
+      --text-secondary: #939293;
+      --accent-color: #ffd866;
+      --accent-rgb: 255, 216, 102;
+      --accent-hover: #ff6188;
+      --glow-color: rgba(255, 216, 102, 0.3);
+      --scrollbar-thumb: #403e41;
+      --danger-color: #ff6188;
+      --success-color: #a9dc76;
+      --panel-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    }
+
+    [data-theme="nord"] {
+      color-scheme: dark;
+      --bg-primary: #242933;
+      --bg-secondary: #2e3440;
+      --bg-tertiary: #3b4252;
+      --bg-glass: rgba(46, 52, 64, 0.75);
+      --border-color: rgba(136, 192, 208, 0.22);
+      --text-primary: #eceff4;
+      --text-secondary: #9aa5b8;
+      --accent-color: #88c0d0;
+      --accent-rgb: 136, 192, 208;
+      --accent-hover: #81a1c1;
+      --glow-color: rgba(136, 192, 208, 0.3);
+      --scrollbar-thumb: #4c566a;
+      --danger-color: #bf616a;
+      --success-color: #a3be8c;
+      --panel-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+    }
+
+    [data-theme="solarized"] {
+      color-scheme: dark;
+      --bg-primary: #00212b;
+      --bg-secondary: #002b36;
+      --bg-tertiary: #073642;
+      --bg-glass: rgba(0, 43, 54, 0.75);
+      --border-color: rgba(42, 161, 152, 0.25);
+      --text-primary: #93a1a1;
+      --text-secondary: #657b83;
+      --accent-color: #2aa198;
+      --accent-rgb: 42, 161, 152;
+      --accent-hover: #268bd2;
+      --glow-color: rgba(42, 161, 152, 0.3);
+      --scrollbar-thumb: #094757;
+      --danger-color: #dc322f;
+      --success-color: #859900;
+      --panel-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+    }
+
+    [data-theme="rose-pine"] {
+      color-scheme: dark;
+      --bg-primary: #13121d;
+      --bg-secondary: #191724;
+      --bg-tertiary: #1f1d2e;
+      --bg-glass: rgba(25, 23, 36, 0.75);
+      --border-color: rgba(235, 188, 186, 0.22);
+      --text-primary: #e0def4;
+      --text-secondary: #908caa;
+      --accent-color: #ebbcba;
+      --accent-rgb: 235, 188, 186;
+      --accent-hover: #f6c177;
+      --glow-color: rgba(235, 188, 186, 0.32);
+      --scrollbar-thumb: #26233a;
+      --danger-color: #eb6f92;
+      --success-color: #9ccfd8;
+      --panel-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.38);
+    }
+
+    [data-theme="sepia"] {
+      color-scheme: light;
+      --bg-primary: #f2ebd9;
+      --bg-secondary: #fbf0d9;
+      --bg-tertiary: #e9dec3;
+      --bg-glass: rgba(251, 240, 217, 0.85);
+      --border-color: rgba(112, 66, 20, 0.16);
+      --text-primary: #433422;
+      --text-secondary: #7f6a52;
+      --accent-color: #b05a1e;
+      --accent-rgb: 176, 90, 30;
+      --accent-hover: #8f4512;
+      --glow-color: rgba(176, 90, 30, 0.22);
+      --scrollbar-thumb: #d8c7a5;
+      --danger-color: #b91c1c;
+      --success-color: #2b7a4b;
+      --panel-shadow: 0 8px 32px 0 rgba(70, 50, 20, 0.1);
+    }
+
     /* Global Reset */
     * {
       box-sizing: border-box;
@@ -204,7 +318,8 @@
       border-radius: 8px;
     }
 
-    [data-theme="light"] img[src*="logo.png"] {
+    [data-theme="light"] img[src*="logo.png"],
+    [data-theme="sepia"] img[src*="logo.png"] {
       filter: invert(1) brightness(0.15) !important;
     }
     

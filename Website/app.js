@@ -228,6 +228,12 @@ document.addEventListener('DOMContentLoaded', () => {
     btnToolbarShortcuts: document.getElementById('btn-toolbar-shortcuts'),
     btnToolbarGoToLine: document.getElementById('btn-toolbar-gotoline'),
     btnToolbarSidebar: document.getElementById('btn-toolbar-sidebar'),
+    btnToolbarSettings: document.getElementById('btn-toolbar-settings'),
+    btnToolbarZen: document.getElementById('btn-toolbar-zen'),
+    btnZenExit: document.getElementById('btn-zen-exit'),
+    btnSortLines: document.getElementById('btn-sort-lines'),
+    btnDedupeLines: document.getElementById('btn-dedupe-lines'),
+    btnTrimSpaces: document.getElementById('btn-trim-spaces'),
     appSidebar: document.getElementById('app-sidebar'),
     
     // Previews
@@ -1132,6 +1138,37 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function changeCase(type) {
+    const isLineOp = type === 'sort' || type === 'dedupe' || type === 'trim';
+
+    function transformContent(raw) {
+      if (type === 'upper') return raw.toUpperCase();
+      if (type === 'lower') return raw.toLowerCase();
+      if (type === 'title') return raw.replace(/\b\w/g, c => c.toUpperCase());
+      if (type === 'sort') {
+        const lines = raw.split('\n');
+        return lines.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).join('\n');
+      }
+      if (type === 'dedupe') {
+        const seen = new Set();
+        return raw.split('\n').filter(line => {
+          if (seen.has(line)) return false;
+          seen.add(line);
+          return true;
+        }).join('\n');
+      }
+      if (type === 'trim') {
+        return raw.split('\n').map(line => line.replace(/[ \t]+$/, '')).join('\n');
+      }
+      return raw;
+    }
+
+    function getOpToast(op) {
+      if (op === 'sort') return '🔤 Sorted lines alphabetically';
+      if (op === 'dedupe') return '🧹 Removed duplicate lines';
+      if (op === 'trim') return '✂️ Trimmed trailing spaces';
+      return null;
+    }
+
     if (state.editorMode === 'rich') {
       if (el.richarea) el.richarea.focus(); // Focus first to enable selection restore on mobile
       if (savedRange) {
@@ -1140,25 +1177,28 @@ document.addEventListener('DOMContentLoaded', () => {
         sel.addRange(savedRange);
       }
       const sel = window.getSelection();
-      if (!sel || !sel.toString()) {
+      const hasSelection = sel && sel.toString().length > 0;
+
+      if (!hasSelection && !isLineOp) {
         showToast('⚠️ Please select text to change case', 'error');
         return;
       }
-      const selectedText = sel.toString();
-      let convertedText = '';
-      if (type === 'upper') {
-        convertedText = selectedText.toUpperCase();
-      } else if (type === 'lower') {
-        convertedText = selectedText.toLowerCase();
-      } else if (type === 'title') {
-        convertedText = selectedText.replace(/\b\w/g, c => c.toUpperCase());
+
+      if (!hasSelection && isLineOp) {
+        const converted = transformContent(el.richarea.innerText || el.richarea.textContent || '');
+        el.richarea.innerText = converted;
+      } else {
+        const selectedText = sel.toString();
+        const convertedText = transformContent(selectedText);
+        document.execCommand('insertText', false, convertedText);
       }
-      
-      document.execCommand('insertText', false, convertedText);
+
       el.richarea.focus();
       runAnalytics();
       updatePreviews();
       saveSettings();
+      const toastMsg = getOpToast(type);
+      if (toastMsg) showToast(toastMsg, 'info');
       return;
     }
 
@@ -1168,33 +1208,33 @@ document.addEventListener('DOMContentLoaded', () => {
       start = savedTextareaStart;
       end = savedTextareaEnd;
     }
-    
-    if (start === end) {
+
+    const value = el.textarea.value;
+
+    if (start === end && !isLineOp) {
       showToast('⚠️ Please select text to change case', 'error');
       return;
     }
-    
-    const value = el.textarea.value;
-    const selectedText = value.substring(start, end);
-    let convertedText = '';
-    
-    if (type === 'upper') {
-      convertedText = selectedText.toUpperCase();
-    } else if (type === 'lower') {
-      convertedText = selectedText.toLowerCase();
-    } else if (type === 'title') {
-      convertedText = selectedText.replace(/\b\w/g, c => c.toUpperCase());
+
+    if (start === end && isLineOp) {
+      start = 0;
+      end = value.length;
     }
-    
+
+    const selectedText = value.substring(start, end);
+    const convertedText = transformContent(selectedText);
+
     el.textarea.setRangeText(convertedText, start, end, 'select');
     el.textarea.focus();
     el.textarea.setSelectionRange(start, start + convertedText.length);
-    
+
     // Keep saved coordinates in sync
     savedTextareaStart = start;
     savedTextareaEnd = start + convertedText.length;
-    
+
     el.textarea.dispatchEvent(new Event('input'));
+    const toastMsg = getOpToast(type);
+    if (toastMsg) showToast(toastMsg, 'info');
   }
 
   function varStyle(name) {
@@ -1397,7 +1437,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function cycleThemes() {
-    const themes = ['light', 'dark', 'cyberpunk', 'forest'];
+    const themes = ['light', 'dark', 'cyberpunk', 'forest', 'dracula', 'monokai', 'nord', 'solarized', 'rose-pine', 'sepia'];
     let idx = themes.indexOf(state.theme);
     idx = (idx + 1) % themes.length;
     const nextTheme = themes[idx];
@@ -1433,6 +1473,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const lineHeight = parseFloat(getComputedStyle(el.textarea).lineHeight || 24);
     el.textarea.scrollTop = (lineNo - 4) * lineHeight;
     showToast(`➡️ Jumped to line ${lineNo}`, 'info');
+  }
+
+  function toggleZenMode() {
+    const isZen = document.body.classList.toggle('zen-mode');
+    if (isZen) {
+      if (el.btnToolbarZen) el.btnToolbarZen.classList.add('active');
+      showToast('🧘 Zen Mode activated (Press Esc to exit)', 'info');
+    } else {
+      if (el.btnToolbarZen) el.btnToolbarZen.classList.remove('active');
+      showToast('Exited Zen Mode', 'info');
+    }
+  }
+
+  function exitZenMode() {
+    if (document.body.classList.contains('zen-mode')) {
+      document.body.classList.remove('zen-mode');
+      if (el.btnToolbarZen) el.btnToolbarZen.classList.remove('active');
+      showToast('Exited Zen Mode', 'info');
+    }
   }
 
   // --- FIND AND REPLACE ---
@@ -1769,8 +1828,46 @@ document.addEventListener('DOMContentLoaded', () => {
     if (el.filterHueRotate) el.filterHueRotate.value = 0;
     if (el.filterOpacity) el.filterOpacity.value = 100;
 
+    document.querySelectorAll('.photo-preset-btn').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-preset') === 'original');
+    });
+
     applyPhotoFilters();
     updatePhotoTransformations();
+  }
+
+  function applyPhotoPreset(presetName) {
+    const presets = {
+      original: { brightness: 100, contrast: 100, saturate: 100, grayscale: 0, sepia: 0, invert: 0, blur: 0, hueRotate: 0, opacity: 100 },
+      vintage:  { brightness: 110, contrast: 90, saturate: 80, grayscale: 0, sepia: 40, invert: 0, blur: 0, hueRotate: -10, opacity: 100 },
+      vivid:    { brightness: 105, contrast: 125, saturate: 150, grayscale: 0, sepia: 0, invert: 0, blur: 0, hueRotate: 0, opacity: 100 },
+      noir:     { brightness: 95, contrast: 140, saturate: 0, grayscale: 100, sepia: 0, invert: 0, blur: 0, hueRotate: 0, opacity: 100 },
+      cyberpunk:{ brightness: 110, contrast: 130, saturate: 160, grayscale: 0, sepia: 0, invert: 0, blur: 0, hueRotate: 180, opacity: 100 },
+      warm:     { brightness: 105, contrast: 105, saturate: 120, grayscale: 0, sepia: 25, invert: 0, blur: 0, hueRotate: 15, opacity: 100 }
+    };
+
+    const target = presets[presetName];
+    if (!target) return;
+
+    Object.assign(state.photo.filters, target);
+
+    if (el.filterBrightness) el.filterBrightness.value = target.brightness;
+    if (el.filterContrast) el.filterContrast.value = target.contrast;
+    if (el.filterSaturate) el.filterSaturate.value = target.saturate;
+    if (el.filterGrayscale) el.filterGrayscale.value = target.grayscale;
+    if (el.filterSepia) el.filterSepia.value = target.sepia;
+    if (el.filterInvert) el.filterInvert.value = target.invert;
+    if (el.filterBlur) el.filterBlur.value = target.blur;
+    if (el.filterHueRotate) el.filterHueRotate.value = target.hueRotate;
+    if (el.filterOpacity) el.filterOpacity.value = target.opacity;
+
+    applyPhotoFilters();
+
+    document.querySelectorAll('.photo-preset-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-preset') === presetName);
+    });
+
+    showToast(`🎨 Preset applied: ${presetName.charAt(0).toUpperCase() + presetName.slice(1)}`, 'info');
   }
 
   function applyPhotoFilters() {
@@ -1814,6 +1911,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Convert kebab-case (e.g. hue-rotate) to camelCase (e.g. hueRotate)
     id = id.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
     state.photo.filters[id] = parseInt(e.target.value);
+    document.querySelectorAll('.photo-preset-btn').forEach(b => b.classList.remove('active'));
     applyPhotoFilters();
   }
 
@@ -2263,7 +2361,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     };
-    [el.btnBold, el.btnItalic, el.btnUnderline, el.btnStrike, el.btnH1, el.btnH2, el.btnLink, el.btnUpper, el.btnLower, el.btnTitle].forEach(preventFocusLoss);
+    [el.btnBold, el.btnItalic, el.btnUnderline, el.btnStrike, el.btnH1, el.btnH2, el.btnLink, el.btnUpper, el.btnLower, el.btnTitle, el.btnSortLines, el.btnDedupeLines, el.btnTrimSpaces].forEach(preventFocusLoss);
 
     // Track selection changes inside the raw textarea
     const saveTextareaSelection = () => {
@@ -2414,6 +2512,41 @@ document.addEventListener('DOMContentLoaded', () => {
     el.btnUpper.addEventListener('click', () => changeCase('upper'));
     el.btnLower.addEventListener('click', () => changeCase('lower'));
     el.btnTitle.addEventListener('click', () => changeCase('title'));
+    
+    if (el.btnSortLines) {
+      el.btnSortLines.addEventListener('click', () => {
+        changeCase('sort');
+        closeAllPopovers();
+      });
+    }
+    if (el.btnDedupeLines) {
+      el.btnDedupeLines.addEventListener('click', () => {
+        changeCase('dedupe');
+        closeAllPopovers();
+      });
+    }
+    if (el.btnTrimSpaces) {
+      el.btnTrimSpaces.addEventListener('click', () => {
+        changeCase('trim');
+        closeAllPopovers();
+      });
+    }
+    if (el.btnToolbarZen) {
+      el.btnToolbarZen.addEventListener('click', () => {
+        toggleZenMode();
+      });
+    }
+    if (el.btnZenExit) {
+      el.btnZenExit.addEventListener('click', () => {
+        exitZenMode();
+      });
+    }
+    if (el.btnToolbarSettings) {
+      el.btnToolbarSettings.addEventListener('click', () => {
+        syncSettingsUI();
+        el.settingsDialog.showModal();
+      });
+    }
     
     el.btnSplitToggle.addEventListener('click', () => {
       state.splitViewActive = !state.splitViewActive;
@@ -3431,6 +3564,12 @@ document.addEventListener('DOMContentLoaded', () => {
         updatePreviews(true);
         showToast('🔄 Preview updated', 'info');
       }
+      if (e.key === 'Escape') {
+        if (document.body.classList.contains('zen-mode')) {
+          e.preventDefault();
+          exitZenMode();
+        }
+      }
     });
 
     // Footer link modal bindings - Handled via standalone about.html page
@@ -3448,6 +3587,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (el.btnFlipV) el.btnFlipV.addEventListener('click', flipPhotoV);
     if (el.btnClearPhoto) el.btnClearPhoto.addEventListener('click', clearPhoto);
     if (el.btnResetFilters) el.btnResetFilters.addEventListener('click', resetFilters);
+
+    // Photo Preset Buttons
+    document.querySelectorAll('.photo-preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const preset = btn.getAttribute('data-preset');
+        applyPhotoPreset(preset);
+      });
+    });
 
     // Filter Sliders Input Events
     const sliders = [
@@ -3485,6 +3632,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- COMMAND PALETTE LOGIC ---
   const commands = [
     { name: 'Show settings menu', shortcut: 'Ctrl-,', action: () => { if (el.settingsDialog) { syncSettingsUI(); el.settingsDialog.showModal(); } } },
+    { name: 'Toggle Zen Mode (Distraction-free)', shortcut: 'Esc', action: () => { toggleZenMode(); } },
+    { name: 'Cycle Color Themes', shortcut: '', action: () => { cycleThemes(); } },
+    { name: 'Sort Lines A-Z', shortcut: '', action: () => { changeCase('sort'); } },
+    { name: 'Remove Duplicate Lines', shortcut: '', action: () => { changeCase('dedupe'); } },
+    { name: 'Trim Trailing Spaces', shortcut: '', action: () => { changeCase('trim'); } },
     { name: 'Select all', shortcut: 'Ctrl-A', action: () => { el.textarea.focus(); el.textarea.select(); } },
     { name: 'Center selection', shortcut: '', action: () => { centerTextareaSelection(); } },
     { name: 'Go to line...', shortcut: 'Ctrl-L', action: () => { jumpToLineNumber(); } },
