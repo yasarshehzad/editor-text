@@ -62,7 +62,7 @@
   </script>
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="styles.css?v=1.0.16">
+  <link rel="stylesheet" href="styles.css?v=1.0.17">
 
   <!-- JSON-LD Structured Schema.org Data -->
   <script type="application/ld+json">
@@ -77,7 +77,7 @@
       "applicationCategory": "UtilityApplication",
       "operatingSystem": "All",
       "browserRequirements": "Requires JavaScript. Requires HTML5.",
-      "softwareVersion": "1.0.16",
+      "softwareVersion": "1.0.17",
       "offers": {
         "@type": "Offer",
         "price": "0",
@@ -590,10 +590,6 @@
                   <span class="material-symbols-outlined" style="font-size: 0.95rem;">view_stream</span>
                   <span>Compact</span>
                 </button>
-                <button type="button" class="stats-mode-pill btn-stats-hide" id="btn-stats-mode-hide" title="Hide Stats (Distraction-Free)" aria-label="Hide Stats">
-                  <span class="material-symbols-outlined" style="font-size: 0.95rem;">visibility_off</span>
-                  <span>Hide</span>
-                </button>
               </div>
             </div>
 
@@ -674,11 +670,6 @@
             </div>
           </section>
 
-          <!-- Floating Restore Button (Only visible when stats are hidden on mobile) -->
-          <button type="button" class="mobile-stats-restore-btn hidden" id="btn-restore-mobile-stats" title="Show Document Stats" aria-label="Show Document Stats">
-            <span class="material-symbols-outlined">analytics</span>
-            <span>Stats</span>
-          </button>
           <div class="split-preview-wrapper hidden" id="split-preview-container">
             <div class="split-preview-header">
               <div class="split-preview-title-group">
@@ -984,6 +975,8 @@
                 <span>Delete</span>
               </button>
             </div>
+          </div>
+
           <!-- Filter Presets -->
           <div class="sidebar-section">
             <h2 class="sidebar-title">
@@ -1339,15 +1332,99 @@
       </div>
     </section>
 
-    <!-- FOOTER -->
-    <footer class="glass-panel">
-      <div id="footer-left">
-        &copy; 2026 Editor Text (editortext.com). All rights reserved.
-      </div>
-      <div class="footer-links">
-        <a href="about.html" id="footer-about-link">About</a>
-        <a href="privacy.html">Privacy Policy</a>
-        <a href="terms.html">Terms of Service</a>
+    <!-- COMPREHENSIVE SITE FOOTER -->
+    <footer class="site-footer glass-panel" id="site-footer" role="contentinfo">
+      <div class="footer-inner-container">
+        
+        <div class="footer-grid">
+          
+          <!-- Column 1: Brand & Privacy Core -->
+          <div class="footer-col footer-col-brand">
+            <div class="footer-brand-header">
+              <span class="footer-brand-icon material-symbols-outlined" aria-hidden="true">edit_note</span>
+              <span class="footer-brand-name">Editor Text</span>
+            </div>
+            <p class="footer-tagline">
+              The ultra-fast, private, and distraction-free in-browser text and code editor. Engineered with 100% client-side Web APIs for maximum privacy, instant offline reliability, and zero data leakage.
+            </p>
+            <div class="footer-trust-badges">
+              <span class="trust-badge" title="Zero cloud storage: your text never leaves your local browser">
+                <span class="material-symbols-outlined" aria-hidden="true">shield</span>
+                <span>100% Client-Side</span>
+              </span>
+              <span class="trust-badge" title="Progressive Web App: edit even without internet">
+                <span class="material-symbols-outlined" aria-hidden="true">wifi_off</span>
+                <span>Works Offline</span>
+              </span>
+              <span class="trust-badge" title="Instant usage: no sign-up or cookies required">
+                <span class="material-symbols-outlined" aria-hidden="true">lock_open</span>
+                <span>No Login Required</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Column 2: Editor Modes -->
+          <div class="footer-col">
+            <h4 class="footer-heading">Editor Modes</h4>
+            <ul class="footer-links-list">
+              <li><a href="#text-workspace" class="footer-nav-link" data-switch-mode="plain">Plain Text (.txt)</a></li>
+              <li><a href="#text-workspace" class="footer-nav-link" data-switch-mode="markdown">Markdown (.md)</a></li>
+              <li><a href="#text-workspace" class="footer-nav-link" data-switch-mode="rich">Rich Formatted Text</a></li>
+              <li><a href="#text-workspace" class="footer-nav-link" data-switch-mode="code">Code &amp; Syntax Editor</a></li>
+              <li><a href="#text-workspace" class="footer-nav-link" data-switch-mode="csv">CSV Table Viewer</a></li>
+              <li><a href="#diff-workspace" class="footer-nav-link" data-switch-tab="diff">Diff &amp; Compare Tool</a></li>
+              <li><a href="#photo-workspace" class="footer-nav-link" data-switch-tab="photo">Photo &amp; Canvas Editor</a></li>
+            </ul>
+          </div>
+
+          <!-- Column 3: Features & Capabilities -->
+          <div class="footer-col">
+            <h4 class="footer-heading">Features &amp; Tools</h4>
+            <ul class="footer-links-list">
+              <li><a href="#editor-toolbar" class="footer-nav-action" data-action="save">Save In-Place (Disk Sync)</a></li>
+              <li><a href="#editor-toolbar" class="footer-nav-action" data-action="recents">Recent Drafts Manager</a></li>
+              <li><a href="#editor-toolbar" class="footer-nav-action" data-action="print">Advanced Print &amp; PDF</a></li>
+              <li><a href="#editor-toolbar" class="footer-nav-action" data-action="tts">Text-to-Speech Read Aloud</a></li>
+              <li><a href="#editor-toolbar" class="footer-nav-action" data-action="theme">10 Color Themes</a></li>
+              <li><a href="#editor-toolbar" class="footer-nav-action" data-action="zen">Zen Distraction-Free Mode</a></li>
+              <li><a href="#editor-toolbar" class="footer-nav-action" data-action="palette">Command Palette (Ctrl+K)</a></li>
+            </ul>
+          </div>
+
+          <!-- Column 4: Guides, Reference & Legal -->
+          <div class="footer-col">
+            <h4 class="footer-heading">Guides &amp; Legal</h4>
+            <ul class="footer-links-list">
+              <li><a href="#seo-knowledge-hub" class="footer-nav-link">Text Editor Knowledge Hub</a></li>
+              <li><a href="#seo-shortcuts-heading" class="footer-nav-link">Keyboard Shortcuts Reference</a></li>
+              <li><a href="#seo-faq-heading" class="footer-nav-link">Frequently Asked Questions</a></li>
+              <li><a href="about.html" class="footer-nav-link">About Editor Text</a></li>
+              <li><a href="privacy.html" class="footer-nav-link">Privacy Policy</a></li>
+              <li><a href="terms.html" class="footer-nav-link">Terms of Service</a></li>
+            </ul>
+          </div>
+
+        </div>
+
+        <hr class="footer-divider">
+
+        <!-- Bottom Sub-Footer Bar -->
+        <div class="footer-bottom-bar">
+          <div class="footer-copyright">
+            &copy; 2026 <strong>Editor Text</strong> (<a href="https://editortext.com" class="footer-site-link">editortext.com</a>). All rights reserved.
+          </div>
+          <div class="footer-status-pill">
+            <span class="status-indicator-dot" aria-hidden="true"></span>
+            <span>Client-Side Engine Active &bull; v1.0.17</span>
+          </div>
+          <div class="footer-actions">
+            <button type="button" class="btn-footer-back-to-top" id="btn-footer-back-to-top" title="Scroll back to top" aria-label="Scroll back to top">
+              <span class="material-symbols-outlined" style="font-size: 1rem;" aria-hidden="true">arrow_upward</span>
+              <span>Back to Top</span>
+            </button>
+          </div>
+        </div>
+
       </div>
     </footer>
 
@@ -1891,6 +1968,6 @@
   </div>
 
   <!-- Custom Logic JS -->
-  <script src="app.js?v=1.0.16"></script>
+  <script src="app.js?v=1.0.17"></script>
 </body>
 </html>

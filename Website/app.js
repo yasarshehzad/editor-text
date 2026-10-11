@@ -451,9 +451,8 @@ document.addEventListener('DOMContentLoaded', () => {
     mobileStatsFullView: document.getElementById('mobile-stats-full-view'),
     btnStatsModeFull: document.getElementById('btn-stats-mode-full'),
     btnStatsModeCompact: document.getElementById('btn-stats-mode-compact'),
-    btnStatsModeHide: document.getElementById('btn-stats-mode-hide'),
-    btnRestoreMobileStats: document.getElementById('btn-restore-mobile-stats'),
-    statusBar: document.getElementById('editor-status-bar')
+    statusBar: document.getElementById('editor-status-bar'),
+    btnFooterBackToTop: document.getElementById('btn-footer-back-to-top')
   };
 
   // --- INITIALIZATION ---
@@ -1699,30 +1698,24 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setMobileStatsMode(mode) {
-    if (!['full', 'compact', 'hidden'].includes(mode)) mode = 'compact';
+    if (!['full', 'compact'].includes(mode)) mode = 'compact';
     state.mobileStatsMode = mode;
     safeStorage.setItem('et_mobile_stats_mode', mode);
 
     if (el.mobileAnalyticsPanel) {
       el.mobileAnalyticsPanel.setAttribute('data-mode', mode);
-      if (mode === 'hidden') {
-        el.mobileAnalyticsPanel.classList.add('hidden');
-        if (el.btnRestoreMobileStats) el.btnRestoreMobileStats.classList.remove('hidden');
-      } else {
-        el.mobileAnalyticsPanel.classList.remove('hidden');
-        if (el.btnRestoreMobileStats) el.btnRestoreMobileStats.classList.add('hidden');
-        
-        if (mode === 'compact') {
-          if (el.mobileStatsCompactView) el.mobileStatsCompactView.classList.remove('hidden');
-          if (el.mobileStatsFullView) el.mobileStatsFullView.classList.add('hidden');
-          if (el.btnStatsModeCompact) el.btnStatsModeCompact.classList.add('active');
-          if (el.btnStatsModeFull) el.btnStatsModeFull.classList.remove('active');
-        } else if (mode === 'full') {
-          if (el.mobileStatsCompactView) el.mobileStatsCompactView.classList.add('hidden');
-          if (el.mobileStatsFullView) el.mobileStatsFullView.classList.remove('hidden');
-          if (el.btnStatsModeFull) el.btnStatsModeFull.classList.add('active');
-          if (el.btnStatsModeCompact) el.btnStatsModeCompact.classList.remove('active');
-        }
+      el.mobileAnalyticsPanel.classList.remove('hidden');
+      
+      if (mode === 'compact') {
+        if (el.mobileStatsCompactView) el.mobileStatsCompactView.classList.remove('hidden');
+        if (el.mobileStatsFullView) el.mobileStatsFullView.classList.add('hidden');
+        if (el.btnStatsModeCompact) el.btnStatsModeCompact.classList.add('active');
+        if (el.btnStatsModeFull) el.btnStatsModeFull.classList.remove('active');
+      } else if (mode === 'full') {
+        if (el.mobileStatsCompactView) el.mobileStatsCompactView.classList.add('hidden');
+        if (el.mobileStatsFullView) el.mobileStatsFullView.classList.remove('hidden');
+        if (el.btnStatsModeFull) el.btnStatsModeFull.classList.add('active');
+        if (el.btnStatsModeCompact) el.btnStatsModeCompact.classList.remove('active');
       }
     }
   }
@@ -3785,25 +3778,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (el.btnStatsModeCompact) {
       el.btnStatsModeCompact.addEventListener('click', () => setMobileStatsMode('compact'));
     }
-    if (el.btnStatsModeHide) {
-      el.btnStatsModeHide.addEventListener('click', () => {
-        setMobileStatsMode('hidden');
-        showToast('📊 Stats hidden. Tap the floating button or status bar to restore.', 'info');
-      });
-    }
-    if (el.btnRestoreMobileStats) {
-      el.btnRestoreMobileStats.addEventListener('click', () => {
-        setMobileStatsMode('compact');
-        showToast('📊 Stats restored (Compact View)', 'info');
-      });
-    }
     if (el.statusBar) {
       el.statusBar.addEventListener('click', () => {
         if (window.innerWidth <= 768) {
-          if (state.mobileStatsMode === 'hidden') {
-            setMobileStatsMode('compact');
-            showToast('📊 Stats: Compact View', 'info');
-          } else if (state.mobileStatsMode === 'compact') {
+          if (state.mobileStatsMode === 'compact') {
             setMobileStatsMode('full');
             showToast('📊 Stats: Full View', 'info');
           } else {
@@ -3813,6 +3791,60 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     }
+
+    // Footer Back to Top Button
+    if (el.btnFooterBackToTop) {
+      el.btnFooterBackToTop.addEventListener('click', () => {
+        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: 0, behavior: prefersReduced ? 'auto' : 'smooth' });
+      });
+    }
+
+    // Footer Interactive Navigation Links & Actions
+    document.querySelectorAll('.site-footer a[data-switch-mode]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const mode = link.getAttribute('data-switch-mode');
+        if (mode && el.editorModeSelect) {
+          el.editorModeSelect.value = mode;
+          setEditorMode(mode);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    });
+
+    document.querySelectorAll('.site-footer a[data-switch-tab]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tab = link.getAttribute('data-switch-tab');
+        if (tab) {
+          switchTab(tab);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    });
+
+    document.querySelectorAll('.site-footer a[data-action]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const act = link.getAttribute('data-action');
+        if (act === 'save') {
+          downloadFile();
+        } else if (act === 'recents') {
+          openRecentFilesModal();
+        } else if (act === 'print') {
+          openPrintSetupDialog();
+        } else if (act === 'tts') {
+          if (el.btnSpeak) el.btnSpeak.click();
+        } else if (act === 'theme') {
+          cycleTheme();
+        } else if (act === 'zen') {
+          toggleZenMode();
+        } else if (act === 'palette') {
+          openCommandPalette();
+        }
+      });
+    });
     if (el.btnToolbarSettings) {
       el.btnToolbarSettings.addEventListener('click', () => {
         syncSettingsUI();
@@ -5084,7 +5116,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'Photo: Cyberpunk Preset', shortcut: '', action: () => { switchTab('photo'); applyPhotoPreset('cyberpunk'); } },
     { name: 'Stats: Compact View (Mobile)', shortcut: '', action: () => { setMobileStatsMode('compact'); showToast('📊 Stats: Compact View', 'info'); } },
     { name: 'Stats: Full Detailed View (Mobile)', shortcut: '', action: () => { setMobileStatsMode('full'); showToast('📊 Stats: Full View', 'info'); } },
-    { name: 'Stats: Hide / Show Stats (Mobile)', shortcut: '', action: () => { setMobileStatsMode(state.mobileStatsMode === 'hidden' ? 'compact' : 'hidden'); } },
+    { name: 'Stats: Toggle Full / Compact (Mobile)', shortcut: '', action: () => { setMobileStatsMode(state.mobileStatsMode === 'compact' ? 'full' : 'compact'); } },
     { name: 'Photo: Warm Sun Preset', shortcut: '', action: () => { switchTab('photo'); applyPhotoPreset('warm'); } },
     { name: 'Photo: Reset All Filters', shortcut: '', action: () => { switchTab('photo'); resetFilters(); } }
   ];
