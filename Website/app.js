@@ -941,6 +941,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     bar.classList.remove('hidden');
     
+    if (state.editorMode === 'rich') {
+      const text = el.richarea ? (el.richarea.innerText || '') : '';
+      const words = (text.match(/\S+/g) || []).length;
+      const chars = text.length;
+      bar.innerHTML = `<span class="vim-mode-badge insert">VISUAL</span> RICH | ${words} words | ${chars} chars`;
+      return;
+    }
+
     const text = el.textarea.value;
     const caretPos = el.textarea.selectionStart;
     const lines = text.substring(0, caretPos).split('\n');
@@ -1284,6 +1292,36 @@ document.addEventListener('DOMContentLoaded', () => {
       speakTimeText = `${speakSeconds} sec`;
     }
 
+    // Estimated File Size
+    const byteSize = new Blob([text]).size;
+    let fileSizeText = '0 B';
+    if (byteSize < 1024) fileSizeText = `${byteSize} B`;
+    else if (byteSize < 1024 * 1024) fileSizeText = `${(byteSize / 1024).toFixed(1)} KB`;
+    else fileSizeText = `${(byteSize / (1024 * 1024)).toFixed(1)} MB`;
+
+    // Readability / Grade Level (Flesch-Kincaid formula)
+    let syllables = 0;
+    const wordsArr = text.toLowerCase().match(/[a-z]+/g) || [];
+    for (const w of wordsArr) {
+      let count = (w.match(/[aeiouy]{1,2}/g) || []).length;
+      if (w.endsWith('e') && !w.endsWith('le') && count > 1) count--;
+      syllables += Math.max(1, count);
+    }
+    let readingEase = 100;
+    if (wordCount > 0 && sentenceCount > 0) {
+      readingEase = Math.round(206.835 - (1.015 * (wordCount / sentenceCount)) - (84.6 * (syllables / wordCount)));
+      readingEase = Math.max(0, Math.min(100, readingEase));
+    }
+    let readabilityText = 'Standard';
+    if (wordCount === 0) readabilityText = 'Standard';
+    else if (readingEase >= 90) readabilityText = 'Very Easy (5th gr)';
+    else if (readingEase >= 80) readabilityText = 'Easy (6th gr)';
+    else if (readingEase >= 70) readabilityText = 'Fairly Easy (7th gr)';
+    else if (readingEase >= 60) readabilityText = 'Standard (8-9th gr)';
+    else if (readingEase >= 50) readabilityText = 'Fairly Difficult';
+    else if (readingEase >= 30) readabilityText = 'Difficult (College)';
+    else readabilityText = 'Graduate Level';
+
     // Update function to sync both ID (sidebar) and Class (mobile on-page) elements
     const setStatText = (key, val) => {
       const elById = document.getElementById(`stat-${key}`);
@@ -1301,6 +1339,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setStatText('sentences', sentenceCount);
     setStatText('reading-time', readTimeText);
     setStatText('speaking-time', speakTimeText);
+    setStatText('size', fileSizeText);
+    setStatText('readability', readabilityText);
   }
 
   // --- WHITESPACE VISUALIZER ---
@@ -2634,8 +2674,8 @@ document.addEventListener('DOMContentLoaded', () => {
       el.shortcutsDialog.showModal();
     });
     el.btnToolbarGoToLine.addEventListener('click', jumpToLineNumber);
-    // Sidebar Toggling Event Listeners (desktop FAB, mobile text inline button, and mobile photo inline button)
-    const toggleButtons = [el.btnToolbarSidebar, document.getElementById('btn-mobile-sidebar-toggle'), el.btnMobileSidebarTogglePhoto];
+    // Sidebar Toggling Event Listeners (desktop FAB and mobile photo inline button)
+    const toggleButtons = [el.btnToolbarSidebar, el.btnMobileSidebarTogglePhoto];
     toggleButtons.forEach(btn => {
       if (btn) {
         btn.addEventListener('click', () => {
@@ -2644,8 +2684,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const isCollapsed = el.appSidebar.classList.contains('collapsed');
             
             if (el.btnToolbarSidebar) el.btnToolbarSidebar.classList.toggle('active', !isCollapsed);
-            const mobBtn = document.getElementById('btn-mobile-sidebar-toggle');
-            if (mobBtn) mobBtn.classList.toggle('active', !isCollapsed);
             if (el.btnMobileSidebarTogglePhoto) el.btnMobileSidebarTogglePhoto.classList.toggle('active', !isCollapsed);
             
             document.body.classList.toggle('sidebar-collapsed', isCollapsed);
@@ -2662,8 +2700,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el.appSidebar) {
           el.appSidebar.classList.add('collapsed');
           if (el.btnToolbarSidebar) el.btnToolbarSidebar.classList.remove('active');
-          const mobBtn = document.getElementById('btn-mobile-sidebar-toggle');
-          if (mobBtn) mobBtn.classList.remove('active');
           if (el.btnMobileSidebarTogglePhoto) el.btnMobileSidebarTogglePhoto.classList.remove('active');
           document.body.classList.add('sidebar-collapsed');
           safeStorage.setItem('et_sidebar_collapsed', 'true');
@@ -3568,7 +3604,31 @@ document.addEventListener('DOMContentLoaded', () => {
         syncSettingsUI();
         el.settingsDialog.showModal();
       }
-      if (e.altKey && e.key === 'r') {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        openCommandPalette();
+      }
+      if (e.key === 'F1') {
+        e.preventDefault();
+        openCommandPalette();
+      }
+      if (e.altKey && (e.key === 't' || e.key === 'T')) {
+        e.preventDefault();
+        cycleThemes();
+      }
+      if (e.altKey && (e.key === 'w' || e.key === 'W')) {
+        e.preventDefault();
+        cycleWordWrap();
+      }
+      if (e.altKey && (e.key === 'v' || e.key === 'V')) {
+        e.preventDefault();
+        if (el.btnSplitToggle) el.btnSplitToggle.click();
+      }
+      if (e.altKey && (e.key === 'l' || e.key === 'L')) {
+        e.preventDefault();
+        if (el.btnToolbarLines) el.btnToolbarLines.click();
+      }
+      if (e.altKey && (e.key === 'r' || e.key === 'R')) {
         e.preventDefault();
         updatePreviews(true);
         showToast('🔄 Preview updated', 'info');
@@ -3642,31 +3702,50 @@ document.addEventListener('DOMContentLoaded', () => {
   const commands = [
     { name: 'Show settings menu', shortcut: 'Ctrl-,', action: () => { if (el.settingsDialog) { syncSettingsUI(); el.settingsDialog.showModal(); } } },
     { name: 'Toggle Zen Mode (Distraction-free)', shortcut: 'Esc', action: () => { toggleZenMode(); } },
-    { name: 'Cycle Color Themes', shortcut: '', action: () => { cycleThemes(); } },
+    { name: 'Cycle Color Themes', shortcut: 'Alt-T', action: () => { cycleThemes(); } },
+    { name: 'Theme: Light Clean', shortcut: '', action: () => { updateTheme('light'); showToast('🎨 Theme set to Light Clean', 'success'); } },
+    { name: 'Theme: Dark Space', shortcut: '', action: () => { updateTheme('dark'); showToast('🎨 Theme set to Dark Space', 'success'); } },
+    { name: 'Theme: Cyberpunk Neon', shortcut: '', action: () => { updateTheme('cyberpunk'); showToast('🎨 Theme set to Cyberpunk', 'success'); } },
+    { name: 'Theme: Forest Emerald', shortcut: '', action: () => { updateTheme('forest'); showToast('🎨 Theme set to Forest Emerald', 'success'); } },
+    { name: 'Theme: Dracula', shortcut: '', action: () => { updateTheme('dracula'); showToast('🎨 Theme set to Dracula', 'success'); } },
+    { name: 'Theme: Monokai Pro', shortcut: '', action: () => { updateTheme('monokai'); showToast('🎨 Theme set to Monokai', 'success'); } },
+    { name: 'Theme: Nord Frost', shortcut: '', action: () => { updateTheme('nord'); showToast('🎨 Theme set to Nord Frost', 'success'); } },
+    { name: 'Theme: Solarized Dark', shortcut: '', action: () => { updateTheme('solarized'); showToast('🎨 Theme set to Solarized Dark', 'success'); } },
+    { name: 'Theme: Rosé Pine', shortcut: '', action: () => { updateTheme('rose-pine'); showToast('🎨 Theme set to Rosé Pine', 'success'); } },
+    { name: 'Theme: Sepia Paper', shortcut: '', action: () => { updateTheme('sepia'); showToast('🎨 Theme set to Sepia Paper', 'success'); } },
     { name: 'Sort Lines A-Z', shortcut: '', action: () => { changeCase('sort'); } },
     { name: 'Remove Duplicate Lines', shortcut: '', action: () => { changeCase('dedupe'); } },
     { name: 'Trim Trailing Spaces', shortcut: '', action: () => { changeCase('trim'); } },
-    { name: 'Select all', shortcut: 'Ctrl-A', action: () => { el.textarea.focus(); el.textarea.select(); } },
+    { name: 'Select all', shortcut: 'Ctrl-A', action: () => {
+      if (state.editorMode === 'rich') {
+        if (el.richarea) {
+          el.richarea.focus();
+          document.execCommand('selectAll', false, null);
+        }
+      } else if (el.textarea) {
+        el.textarea.focus();
+        el.textarea.select();
+      }
+    } },
     { name: 'Center selection', shortcut: '', action: () => { centerTextareaSelection(); } },
-    { name: 'Go to line...', shortcut: 'Ctrl-L', action: () => { jumpToLineNumber(); } },
+    { name: 'Go to line...', shortcut: 'Ctrl-G', action: () => { jumpToLineNumber(); } },
     { name: 'New Document', shortcut: 'Ctrl-N', action: () => { createNewFile(); } },
     { name: 'Open File', shortcut: 'Ctrl-O', action: () => { openFile(); } },
     { name: 'Save / Download File', shortcut: 'Ctrl-S', action: () => { downloadFile(); } },
     { name: 'Copy to Clipboard', shortcut: 'Ctrl-C', action: () => { copyTextToClipboard(); } },
-    { name: 'Print Document', shortcut: 'Ctrl-P', action: () => { window.print(); } },
+    { name: 'Print / Export to PDF', shortcut: 'Ctrl-P', action: () => { window.print(); } },
     { name: 'Undo Change', shortcut: 'Ctrl-Z', action: () => { el.btnToolbarUndo.click(); } },
     { name: 'Redo Change', shortcut: 'Ctrl-Y', action: () => { el.btnToolbarRedo.click(); } },
     { name: 'Toggle Word Wrap', shortcut: 'Alt-W', action: () => { cycleWordWrap(); } },
     { name: 'Toggle Line Numbers', shortcut: 'Alt-L', action: () => { el.btnToolbarLines.click(); } },
     { name: 'Toggle Split HTML Preview', shortcut: 'Alt-V', action: () => { el.btnSplitToggle.click(); } },
     { name: 'Find and Replace', shortcut: 'Ctrl-F', action: () => { el.btnFindReplaceToggle.click(); } },
-    { name: 'Go to next error', shortcut: 'Alt-E', action: () => { showToast('No syntax errors found in document', 'success'); } },
-    { name: 'Go to previous error', shortcut: 'Alt-Shift-E', action: () => { showToast('No syntax errors found in document', 'success'); } },
-    { name: 'Fold', shortcut: 'Alt-L|Ctrl-F1', action: () => { showToast('Code folded successfully', 'info'); } },
-    { name: 'Unfold', shortcut: 'Alt-Shift-L|Ctrl-Shift-F1', action: () => { showToast('Code unfolded successfully', 'info'); } },
-    { name: 'Toggle fold widget', shortcut: 'F2', action: () => { showToast('Fold widget toggled', 'info'); } },
-    { name: 'Fold all', shortcut: '', action: () => { showToast('All code blocks folded', 'info'); } },
-    { name: 'Unfold all', shortcut: 'Alt-Shift-0', action: () => { showToast('All code blocks unfolded', 'info'); } }
+    { name: 'Photo: Vintage Preset', shortcut: '', action: () => { switchTab('photo'); applyPhotoPreset('vintage'); } },
+    { name: 'Photo: Vivid Pop Preset', shortcut: '', action: () => { switchTab('photo'); applyPhotoPreset('vivid'); } },
+    { name: 'Photo: Noir B&W Preset', shortcut: '', action: () => { switchTab('photo'); applyPhotoPreset('noir'); } },
+    { name: 'Photo: Cyberpunk Preset', shortcut: '', action: () => { switchTab('photo'); applyPhotoPreset('cyberpunk'); } },
+    { name: 'Photo: Warm Sun Preset', shortcut: '', action: () => { switchTab('photo'); applyPhotoPreset('warm'); } },
+    { name: 'Photo: Reset All Filters', shortcut: '', action: () => { switchTab('photo'); resetFilters(); } }
   ];
 
   let activeCommandIndex = 0;

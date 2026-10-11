@@ -56,7 +56,7 @@
   </script>
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="styles.css?v=1.0.12">
+  <link rel="stylesheet" href="styles.css?v=1.0.13">
 
   <!-- JSON-LD Structured Schema.org Data -->
   <script type="application/ld+json">
@@ -481,6 +481,14 @@
                 <div class="stat-label">Speaking Time</div>
                 <div class="stat-value stat-speaking-time">&lt; 1 min</div>
               </div>
+              <div class="stat-card inline-stat">
+                <div class="stat-label">File Size</div>
+                <div class="stat-value stat-size">0 B</div>
+              </div>
+              <div class="stat-card inline-stat">
+                <div class="stat-label">Readability</div>
+                <div class="stat-value stat-readability">Standard</div>
+              </div>
             </div>
           </div>
           <div class="split-preview-wrapper hidden" id="split-preview-container">
@@ -661,6 +669,14 @@
               <div class="stat-card" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px;">
                 <div class="stat-label" style="margin-top: 0; font-size: 0.75rem; font-weight: 500;">Speaking Time</div>
                 <div class="stat-value" id="stat-speaking-time" style="font-size: 0.8rem;">&lt; 1 min</div>
+              </div>
+              <div class="stat-card" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px;">
+                <div class="stat-label" style="margin-top: 0; font-size: 0.75rem; font-weight: 500;">File Size</div>
+                <div class="stat-value" id="stat-size" style="font-size: 0.8rem;">0 B</div>
+              </div>
+              <div class="stat-card" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px;">
+                <div class="stat-label" style="margin-top: 0; font-size: 0.75rem; font-weight: 500;">Readability</div>
+                <div class="stat-value" id="stat-readability" style="font-size: 0.8rem;">Standard</div>
               </div>
             </div>
           </div>
@@ -927,6 +943,41 @@
             <td><kbd>Ctrl</kbd> + <kbd>Y</kbd></td>
             <td><kbd>Cmd</kbd> + <kbd>Y</kbd></td>
           </tr>
+          <tr>
+            <td>Command Palette</td>
+            <td><kbd>Ctrl</kbd> + <kbd>K</kbd> / <kbd>F1</kbd></td>
+            <td><kbd>Cmd</kbd> + <kbd>K</kbd> / <kbd>F1</kbd></td>
+          </tr>
+          <tr>
+            <td>Editor Settings</td>
+            <td><kbd>Ctrl</kbd> + <kbd>,</kbd></td>
+            <td><kbd>Cmd</kbd> + <kbd>,</kbd></td>
+          </tr>
+          <tr>
+            <td>Toggle Zen Mode</td>
+            <td><kbd>Esc</kbd></td>
+            <td><kbd>Esc</kbd></td>
+          </tr>
+          <tr>
+            <td>Cycle 10 Color Themes</td>
+            <td><kbd>Alt</kbd> + <kbd>T</kbd></td>
+            <td><kbd>Option</kbd> + <kbd>T</kbd></td>
+          </tr>
+          <tr>
+            <td>Toggle Word Wrap</td>
+            <td><kbd>Alt</kbd> + <kbd>W</kbd></td>
+            <td><kbd>Option</kbd> + <kbd>W</kbd></td>
+          </tr>
+          <tr>
+            <td>Toggle Split HTML Preview</td>
+            <td><kbd>Alt</kbd> + <kbd>V</kbd></td>
+            <td><kbd>Option</kbd> + <kbd>V</kbd></td>
+          </tr>
+          <tr>
+            <td>Refresh Live Preview</td>
+            <td><kbd>Alt</kbd> + <kbd>R</kbd></td>
+            <td><kbd>Option</kbd> + <kbd>R</kbd></td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -1176,6 +1227,6 @@
   </div>
 
   <!-- Custom Logic JS -->
-  <script src="app.js?v=1.0.12"></script>
+  <script src="app.js?v=1.0.13"></script>
 </body>
 </html>
